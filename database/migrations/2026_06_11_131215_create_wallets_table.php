@@ -12,7 +12,7 @@ return new class extends Migration {
             $table->decimal('balance', 12, 2)->default(0.00);
             $table->decimal('total_earned', 12, 2)->default(0.00);
             $table->decimal('total_withdrawn', 12, 2)->default(0.00);
-            $table->timestamp('updated_at')->useCurrentOnUpdate()->nullable();
+            $table->timestamps();
         });
     }
 

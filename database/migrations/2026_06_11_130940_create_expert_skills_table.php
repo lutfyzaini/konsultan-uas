@@ -12,6 +12,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('expert_profile_id')->constrained('expert_profiles')->onDelete('cascade');
             $table->foreignId('skill_id')->constrained('skills')->onDelete('cascade');
+            $table->timestamps();
         });
     }
 
