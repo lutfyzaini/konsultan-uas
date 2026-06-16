@@ -1,7 +1,8 @@
 <?php
 
 use App\Http\Controllers\Auth\AuthController;
-use Illuminate\Support\Facades\Auth;
+use App\Http\Controllers\Client\ExpertController;
+use App\Http\Controllers\HomeController;
 use Illuminate\Support\Facades\Route;
 
 // ── AUTH (guest only) ────────────────────────────────────────────
@@ -16,22 +17,18 @@ Route::post('/logout', [AuthController::class, 'logout'])
     ->name('logout')
     ->middleware('auth');
 
-// ── ROOT REDIRECT ────────────────────────────────────────────────
-Route::get('/', function () {
-    if (Auth::check()) {
-        return redirect()->route(match (Auth::user()->role) {
-            'admin'  => 'admin.dashboard',
-            'expert' => 'expert.dashboard',
-            default  => 'client.dashboard',
-        });
-    }
-    return redirect()->route('login');
-});
+// ── HOMEPAGE & PUBLIC ROUTES ─────────────────────────────────────
+Route::get('/', [HomeController::class, 'index'])->name('home');
+
+// Halaman publik — katalog & detail expert (bisa diakses tanpa login)
+Route::get('/experts', [ExpertController::class, 'index'])->name('experts.index');
+Route::get('/experts/{id}', [ExpertController::class, 'show'])->name('experts.show');
 
 // ── CLIENT ROUTES ────────────────────────────────────────────────
 Route::middleware(['auth', 'role:client'])->prefix('client')->name('client.')->group(function () {
     Route::get('/dashboard', fn() => view('client.dashboard'))->name('dashboard');
-    // nanti ditambah: discovery, booking, payment, chat, review
+    // placeholder booking store — diisi di Step 8
+    Route::post('/booking', fn() => back()->with('error', 'Fitur booking segera hadir!'))->name('booking.store');
 });
 
 // ── EXPERT ROUTES ────────────────────────────────────────────────
