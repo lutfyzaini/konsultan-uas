@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Auth\AuthController;
+use App\Http\Controllers\Client\BookingController;
 use App\Http\Controllers\Client\ExpertController;
 use App\Http\Controllers\HomeController;
 use Illuminate\Support\Facades\Route;
@@ -27,8 +28,14 @@ Route::get('/experts/{id}', [ExpertController::class, 'show'])->name('experts.sh
 // ── CLIENT ROUTES ────────────────────────────────────────────────
 Route::middleware(['auth', 'role:client'])->prefix('client')->name('client.')->group(function () {
     Route::get('/dashboard', fn() => view('client.dashboard'))->name('dashboard');
-    // placeholder booking store — diisi di Step 8
-    Route::post('/booking', fn() => back()->with('error', 'Fitur booking segera hadir!'))->name('booking.store');
+
+    // ── BOOKING FLOW ──
+    Route::get('/booking',                 [BookingController::class, 'index'])->name('booking.index');
+    Route::post('/booking',                [BookingController::class, 'store'])->name('booking.store');
+    Route::get('/booking/{id}/payment',    [BookingController::class, 'payment'])->name('booking.payment');
+    Route::post('/booking/{id}/pay',       [BookingController::class, 'pay'])->name('booking.pay');
+    Route::post('/booking/{id}/cancel',    [BookingController::class, 'cancel'])->name('booking.cancel');
+    Route::get('/booking/{id}',            [BookingController::class, 'show'])->name('booking.show');
 });
 
 // ── EXPERT ROUTES ────────────────────────────────────────────────

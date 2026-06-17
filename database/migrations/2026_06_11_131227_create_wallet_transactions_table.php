@@ -15,7 +15,7 @@ return new class extends Migration {
             $table->decimal('balance_before', 12, 2);
             $table->decimal('balance_after', 12, 2);
             $table->string('description', 255)->nullable();
-            $table->timestamp('created_at')->useCurrent();
+            $table->timestamps();
         });
     }
 

@@ -8,7 +8,7 @@ return new class extends Migration {
     {
         Schema::create('chat_messages', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('consultation_id')->constrained('consultasions')->onDelete('cascade');
+            $table->foreignId('consultation_id')->constrained('consultations')->onDelete('cascade');
             $table->foreignId('sender_id')->constrained('users')->onDelete('cascade');
             $table->text('message');
             $table->enum('type', ['text', 'image', 'file'])->default('text');

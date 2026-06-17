@@ -8,7 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('consultasions', function (Blueprint $table) {
+        Schema::create('consultations', function (Blueprint $table) {
             $table->id();
             $table->foreignId('booking_id')->unique()->constrained('bookings')->onDelete('cascade');
             $table->enum('type', ['chat', 'video_call'])->default('chat');
