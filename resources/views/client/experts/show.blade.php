@@ -205,7 +205,7 @@
                 <div id="slots-{{ $day }}" class="day-slots {{ !$loop->first ? 'hidden' : '' }}">
                     <div class="grid grid-cols-2 gap-2">
                         @foreach($daySlots as $slot)
-                        <button onclick="selectSlot(this, '{{ $slot->id }}', '{{ $day }}', '{{ substr($slot->start_time, 0, 5) }}')"
+                        <button onclick="selectSlot(this, {{ $slot->id }}, '{{ $day }}', '{{ substr($slot->start_time, 0, 5) }}')"
                                 class="slot-btn px-3 py-2.5 text-xs font-medium rounded-lg border border-slate-200 bg-white hover:border-teal-500 hover:bg-teal-50 hover:text-teal-700 transition text-center"
                                 data-slot="{{ $slot->id }}">
                             {{ substr($slot->start_time, 0, 5) }} – {{ substr($slot->end_time, 0, 5) }}
@@ -222,36 +222,53 @@
                 </div>
 
                 {{-- Tombol Booking --}}
-                <div class="mt-4">
-                    @auth
-                        @if(auth()->user()->isClient())
-                        <form id="booking-form" method="POST" action="{{ route('client.booking.store') }}">
-                            @csrf
-                            <input type="hidden" name="availability_id" id="availability_id" value="">
-                            <button type="submit" id="btn-booking"
-                                    disabled
-                                    class="w-full py-3 bg-amber-500 text-white font-semibold rounded-xl text-sm transition
-                                           disabled:opacity-40 disabled:cursor-not-allowed
-                                           enabled:hover:bg-amber-600">
-                                Booking Sekarang
-                            </button>
-                        </form>
-                        @else
-                        <div class="text-center p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-700">
-                            Hanya client yang bisa melakukan booking
-                        </div>
-                        @endif
-                    @else
-                    <a href="{{ route('login') }}"
-                       class="block w-full py-3 bg-amber-500 hover:bg-amber-600 text-white font-semibold rounded-xl text-sm transition text-center">
-                        Masuk untuk Booking
-                    </a>
-                    <p class="text-center text-xs text-slate-400 mt-2">
-                        Belum punya akun?
-                        <a href="{{ route('register') }}" class="text-blue-900 hover:underline">Daftar gratis</a>
-                    </p>
-                    @endauth
-                </div>
+              {{-- Tombol Booking Reguler (Sudah ada di kodinganmu) --}}
+<div class="mt-4">
+    @auth
+        @if(auth()->user()->isClient())
+        <form id="booking-form" method="POST" action="{{ route('client.booking.store') }}">
+            @csrf
+            <input type="hidden" name="expert_profile_id" value="{{ $expert->id }}">
+            <input type="hidden" name="booking_date" value="{{ \Carbon\Carbon::now()->format('Y-m-d') }}">
+            <input type="hidden" name="availability_id" id="availability_id" value="">
+            <button type="submit" id="btn-booking" disabled
+                    class="w-full py-3 bg-blue-900 text-white font-semibold rounded-xl text-sm transition disabled:opacity-40 disabled:cursor-not-allowed enabled:hover:bg-blue-800 shadow-sm">
+                Booking Sesuai Jadwal
+            </button>
+        </form>
+
+       {{-- ── UBAH BAGIAN FORM INSTAN INI ── --}}
+<div class="mt-2 pt-2 border-t border-dashed border-slate-200">
+    @if($expert->is_online)
+        <!-- Ganti action form agar mengarah ke rute client.instant.create milikmu -->
+<form method="POST" action="{{ route('client.instant.create', $expert->id) }}">            @csrf
+            <button type="submit" 
+                    class="w-full py-3 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl text-sm transition shadow-md flex items-center justify-center gap-2">
+                <span class="w-2 h-2 bg-teal-400 rounded-full animate-pulse"></span>
+                Konsultasi Langsung Sekarang (Instant)
+            </button>
+        </form>
+    @else
+        <button disabled 
+                class="w-full py-3 bg-slate-100 text-slate-400 font-medium rounded-xl text-sm cursor-not-allowed border border-slate-200">
+            Konsultasi Instan (Offline)
+        </button>
+    @endif
+</div>
+        {{-- ── AKHIR BLOK FORM KONSULTASI INSTAN ── --}}
+
+        @else
+        <div class="text-center p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-700">
+            Hanya client yang bisa melakukan booking
+        </div>
+        @endif
+    @else
+    <a href="{{ route('login') }}"
+       class="block w-full py-3 bg-amber-500 hover:bg-amber-600 text-white font-semibold rounded-xl text-sm transition text-center">
+        Masuk untuk Booking
+    </a>
+    @endauth
+</div>
 
                 @endif
 

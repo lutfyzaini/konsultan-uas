@@ -18,6 +18,7 @@ return new class extends Migration {
             $table->enum('status', ['unpaid', 'paid', 'refunded'])->default('unpaid');
             $table->timestamp('paid_at')->nullable();
             $table->timestamp('settled_at')->nullable();
+            $table->timestamps();
         });
     }
 

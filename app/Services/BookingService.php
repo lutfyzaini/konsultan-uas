@@ -216,4 +216,89 @@ class BookingService
 
         return $date->startOfDay();
     }
+
+    const ATTENDANCE_MINUTES = 10; // batas hadir di ruang chat
+
+    // ----------------------------------------------------------------
+    // BUAT BOOKING INSTANT (tanpa slot, langsung untuk expert online)
+    // Dipanggil saat client klik "Konsultasi Sekarang" di profil expert
+    // ----------------------------------------------------------------
+    public function createInstantBooking(int $expertProfileId, int $clientId): Booking
+    {
+        return DB::transaction(function () use ($expertProfileId, $clientId) {
+
+            $expert = ExpertProfile::lockForUpdate()->findOrFail($expertProfileId);
+
+            if (! $expert->is_online) {
+                throw new \Exception('Expert ini sedang tidak online.');
+            }
+
+            if ($expert->verification_status !== 'approved') {
+                throw new \Exception('Expert ini belum terverifikasi.');
+            }
+
+            // cek client tidak punya instant booking lain yang masih aktif
+            $activeInstant = Booking::where('client_id', $clientId)
+                ->where('booking_type', 'instant')
+                ->whereIn('status', ['pending_payment', 'confirmed', 'ongoing'])
+                ->exists();
+
+            if ($activeInstant) {
+                throw new \Exception('Kamu masih punya sesi instant yang aktif. Selesaikan dulu sebelum membuat sesi baru.');
+            }
+
+            $booking = Booking::create([
+                'client_id'         => $clientId,
+                'expert_profile_id' => $expert->id,
+                'availability_id'   => null, // instant tidak pakai slot terjadwal
+                'booking_date'      => now()->toDateString(),
+                'start_time'        => now()->toTimeString(),
+                'end_time'          => now()->addHour()->toTimeString(),
+                'status'            => 'pending_payment',
+                'booking_type'      => 'instant',
+                'total_price'       => $expert->hourly_rate,
+                'payment_deadline'  => now()->addMinutes(self::LOCK_MINUTES),
+            ]);
+
+            return $booking;
+        });
+    }
+
+    // ----------------------------------------------------------------
+    // MULAI SESI INSTANT (setelah bayar) — beda dari startSession biasa
+    // karena langsung set attendance_deadline 10 menit
+    // ----------------------------------------------------------------
+    public function startInstantSession(Booking $booking): void
+    {
+        DB::transaction(function () use ($booking) {
+            $booking->update([
+                'status'               => 'ongoing',
+                'session_started_at'   => now(),
+                'attendance_deadline'  => now()->addMinutes(self::ATTENDANCE_MINUTES),
+            ]);
+
+            $booking->consultation()->create([
+                'type'       => 'chat',
+                'status'     => 'active',
+                'started_at' => now(),
+            ]);
+        });
+    }
+
+    // ----------------------------------------------------------------
+    // TANDAI KEHADIRAN: dipanggil saat client/expert masuk ruang chat
+    // ----------------------------------------------------------------
+    public function markAttendance(Booking $booking, string $role): void
+    {
+        if ($role === 'client') {
+            $booking->update(['client_joined' => true]);
+        } elseif ($role === 'expert') {
+            $booking->update(['expert_joined' => true]);
+        }
+
+        // kalau keduanya sudah hadir, sesi resmi dimulai (lewati pengecekan no-show)
+        if ($booking->fresh()->client_joined && $booking->fresh()->expert_joined) {
+            $booking->update(['attendance_deadline' => null]);
+        }
+    }
 }

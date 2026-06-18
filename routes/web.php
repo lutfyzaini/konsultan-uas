@@ -3,6 +3,7 @@
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Client\BookingController;
 use App\Http\Controllers\Client\ExpertController;
+use App\Http\Controllers\Client\InstantConsultationController;
 use App\Http\Controllers\HomeController;
 use Illuminate\Support\Facades\Route;
 
@@ -36,6 +37,15 @@ Route::middleware(['auth', 'role:client'])->prefix('client')->name('client.')->g
     Route::post('/booking/{id}/pay',       [BookingController::class, 'pay'])->name('booking.pay');
     Route::post('/booking/{id}/cancel',    [BookingController::class, 'cancel'])->name('booking.cancel');
     Route::get('/booking/{id}',            [BookingController::class, 'show'])->name('booking.show');
+
+    // ── INSTANT CONSULTATION FLOW ──
+    Route::post('/instant/{expertId}',      [InstantConsultationController::class, 'create'])->name('instant.create');
+    Route::get('/instant/{id}/payment',     [InstantConsultationController::class, 'payment'])->name('instant.payment');
+    Route::post('/instant/{id}/pay',        [InstantConsultationController::class, 'pay'])->name('instant.pay');
+    Route::get('/instant/{id}/room',        [InstantConsultationController::class, 'room'])->name('instant.room');
+    Route::post('/instant/{id}/message',    [InstantConsultationController::class, 'sendMessage'])->name('instant.message');
+    Route::get('/instant/{id}/result',      [InstantConsultationController::class, 'result'])->name('instant.result');
+    Route::get('/instant/{id}/status',      [InstantConsultationController::class, 'checkStatus'])->name('instant.status');
 });
 
 // ── EXPERT ROUTES ────────────────────────────────────────────────

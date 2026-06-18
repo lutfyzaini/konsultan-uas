@@ -28,6 +28,7 @@ return new class extends Migration {
             $table->enum('commission_level', ['newbie', 'pro', 'master'])
                   ->default('newbie');
 
+            $table->integer('penalty_count')->default(0);
             $table->timestamps();
 
             // index untuk query discovery (filter + sort)

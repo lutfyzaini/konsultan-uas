@@ -14,6 +14,7 @@ return new class extends Migration {
             $table->enum('type', ['text', 'image', 'file'])->default('text');
             $table->boolean('is_read')->default(false);
             $table->timestamp('sent_at')->useCurrent();
+            $table->timestamps();
 
             // Indeks untuk AJAX Polling agar query pesan terbaru super cepat
             $table->index(['consultation_id', 'sent_at']);

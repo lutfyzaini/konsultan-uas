@@ -9,7 +9,9 @@ class Booking extends \Illuminate\Database\Eloquent\Model
     protected $fillable = [
         'client_id', 'expert_profile_id', 'availability_id',
         'booking_date', 'start_time', 'end_time', 'status',
+        'booking_type', 'cancel_reason',
         'client_notes', 'total_price', 'payment_deadline',
+        'attendance_deadline', 'client_joined', 'expert_joined',
         'session_started_at', 'session_ended_at',
     ];
  

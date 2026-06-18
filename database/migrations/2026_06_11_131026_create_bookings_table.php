@@ -11,7 +11,7 @@ return new class extends Migration {
             $table->id();
             $table->foreignId('client_id')->constrained('users')->cascadeOnDelete();
             $table->foreignId('expert_profile_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('availability_id')->constrained('availabilities');
+            $table->foreignId('availability_id')->nullable()->constrained('availabilities')->onDelete('set null');
 
             $table->date('booking_date');
             $table->time('start_time');
@@ -36,6 +36,13 @@ return new class extends Migration {
             $table->timestamp('session_started_at')->nullable();
             $table->timestamp('session_ended_at')->nullable();  // untuk trigger auto-approve
 
+
+            // booking instant logic 10 menit 
+            $table->enum('booking_type', ['scheduled', 'instant'])->default('scheduled');
+        $table->timestamp('attendance_deadline')->nullable();
+        $table->boolean('client_joined')->default(false);
+        $table->boolean('expert_joined')->default(false);
+        
             $table->timestamps();
 
             $table->index(['client_id', 'status']);

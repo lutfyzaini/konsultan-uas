@@ -16,3 +16,8 @@ Schedule::command('slots:release-expired')->everyMinute();
 
 // Setiap jam: cairkan dana sesi yang sudah 24 jam tanpa komplain
 Schedule::command('payments:auto-approve')->hourly();
+
+Schedule::command('instant:check-attendance')->everyMinute();
+
+// Setiap menit: cek no-show untuk instant consultation (10 menit deadline)
+Schedule::command('consultation:process-no-shows')->everyMinute();

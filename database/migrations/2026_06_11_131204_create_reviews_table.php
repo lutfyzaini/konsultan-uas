@@ -13,7 +13,7 @@ return new class extends Migration {
             $table->foreignId('expert_profile_id')->constrained('expert_profiles')->onDelete('cascade');
             $table->tinyInteger('rating'); // 1 sampai 5
             $table->text('comment')->nullable();
-            $table->timestamp('created_at')->useCurrent();
+            $table->timestamps();
         });
     }
 

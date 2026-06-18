@@ -86,11 +86,13 @@ class PaymentService
             // 8. Update status booking → confirmed
             $booking->update(['status' => 'confirmed']);
 
-            // 9. Update status slot → booked (permanen, tidak bisa diambil lagi)
-            $booking->availability->update([
-                'status'    => 'booked',
-                'locked_at' => null, // bersihkan locked_at
-            ]);
+            // 9. Update status slot → booked (hanya untuk booking terjadwal, bukan instant)
+            if ($booking->availability) {
+                $booking->availability->update([
+                    'status'    => 'booked',
+                    'locked_at' => null,
+                ]);
+            }
 
             return $payment;
         });
@@ -247,5 +249,150 @@ class PaymentService
         } while (Payment::where('invoice', $invoice)->exists());
 
         return $invoice;
+    }
+    // ════════════════════════════════════════════════════════════
+// TAMBAHKAN METHOD-METHOD INI KE app/Services/PaymentService.php
+// (di dalam class PaymentService, sebelum closing brace terakhir)
+// ════════════════════════════════════════════════════════════
+
+    // ----------------------------------------------------------------
+    // SETTLE: CLIENT TIDAK HADIR (no-show)
+    // Dana hangus, expert tetap dibayar penuh (sesuai aturan no-show biasa)
+    // ----------------------------------------------------------------
+    public function settleClientNoShow(Booking $booking): void
+    {
+        DB::transaction(function () use ($booking) {
+
+            $payment = $booking->payment;
+
+            if (! $payment || $payment->status !== 'paid') {
+                throw new \Exception('Tidak ada pembayaran yang bisa diproses.');
+            }
+
+            // expert tetap dapat dana (sama seperti aturan no-show booking biasa)
+            $expertUser   = $booking->expertProfile->user;
+            $expertWallet = Wallet::where('user_id', $expertUser->id)->lockForUpdate()->first();
+
+            $balanceBefore = $expertWallet->balance;
+            $expertWallet->increment('balance', $payment->expert_earnings);
+            $expertWallet->increment('total_earned', $payment->expert_earnings);
+
+            WalletTransaction::create([
+                'wallet_id'      => $expertWallet->id,
+                'booking_id'     => $booking->id,
+                'type'           => 'credit',
+                'amount'         => $payment->expert_earnings,
+                'balance_before' => $balanceBefore,
+                'balance_after'  => $expertWallet->fresh()->balance,
+                'description'    => 'Kompensasi client tidak hadir — booking #' . $booking->id,
+            ]);
+
+            $payment->update(['status' => 'paid', 'settled_at' => now()]);
+
+            $booking->update([
+                'status'        => 'cancelled',
+                'cancel_reason' => 'client_no_show',
+            ]);
+
+            // expert tetap dapat sesi terhitung & naik level seperti biasa
+            $expert = $booking->expertProfile;
+            $expert->increment('total_sessions');
+            $this->updateCommissionLevel($expert->fresh());
+        });
+    }
+
+    // ----------------------------------------------------------------
+    // SETTLE: EXPERT TIDAK HADIR (no-show)
+    // Dana refund penuh ke client, expert dapat penalti (no_show_count)
+    // ----------------------------------------------------------------
+    public function settleExpertNoShow(Booking $booking): void
+    {
+        DB::transaction(function () use ($booking) {
+
+            $payment = $booking->payment;
+
+            if (! $payment || $payment->status !== 'paid') {
+                throw new \Exception('Tidak ada pembayaran yang bisa diproses.');
+            }
+
+            // refund PENUH ke client (bukan cuma sebagian)
+            $clientWallet  = Wallet::where('user_id', $booking->client_id)->lockForUpdate()->first();
+            $balanceBefore = $clientWallet->balance;
+
+            $clientWallet->increment('balance', $payment->amount);
+            $clientWallet->decrement('total_withdrawn', $payment->amount);
+
+            WalletTransaction::create([
+                'wallet_id'      => $clientWallet->id,
+                'booking_id'     => $booking->id,
+                'type'           => 'credit',
+                'amount'         => $payment->amount,
+                'balance_before' => $balanceBefore,
+                'balance_after'  => $clientWallet->fresh()->balance,
+                'description'    => 'Refund — expert tidak hadir, booking #' . $booking->id,
+            ]);
+
+            $payment->update(['status' => 'refunded']);
+
+            $booking->update([
+                'status'        => 'cancelled',
+                'cancel_reason' => 'expert_no_show',
+            ]);
+
+            // ── PENALTI EXPERT ──
+            $expert = $booking->expertProfile;
+            $expert->increment('no_show_count');
+
+            // auto-suspend jika no_show_count mencapai 3x (sama seperti aturan cancel biasa)
+            $expert = $expert->fresh();
+            if ($expert->no_show_count >= 3) {
+                $expert->user->update(['status' => 'suspended']);
+            }
+        });
+    }
+
+    // ----------------------------------------------------------------
+    // CEK NO-SHOW: dipanggil oleh cron job setiap menit
+    // Mengecek semua instant consultation yang attendance_deadline-nya lewat
+    // ----------------------------------------------------------------
+    public function processNoShows(): array
+    {
+        $result = ['client_no_show' => 0, 'expert_no_show' => 0];
+
+        $expiredBookings = Booking::where('booking_type', 'instant')
+            ->where('status', 'ongoing')
+            ->where('attendance_deadline', '<=', now())
+            ->get();
+
+        foreach ($expiredBookings as $booking) {
+            try {
+                $clientIn  = $booking->client_joined;
+                $expertIn  = $booking->expert_joined;
+
+                if (! $clientIn && $expertIn) {
+                    // hanya expert yang hadir → client no-show
+                    $this->settleClientNoShow($booking);
+                    $result['client_no_show']++;
+
+                } elseif ($clientIn && ! $expertIn) {
+                    // hanya client yang hadir → expert no-show
+                    $this->settleExpertNoShow($booking);
+                    $result['expert_no_show']++;
+
+                } elseif (! $clientIn && ! $expertIn) {
+                    // tidak ada yang hadir — treat sebagai expert no-show
+                    // (expert yang punya tanggung jawab utama menjaga ketersediaan)
+                    $this->settleExpertNoShow($booking);
+                    $result['expert_no_show']++;
+                }
+                // kalau keduanya hadir, harusnya sudah masuk status lain
+                // (di luar scope no-show check)
+
+            } catch (\Exception $e) {
+                \Log::error('Gagal proses no-show booking ' . $booking->id . ': ' . $e->getMessage());
+            }
+        }
+
+        return $result;
     }
 }
