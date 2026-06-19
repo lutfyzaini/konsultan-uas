@@ -48,7 +48,7 @@
                     {{ [
                         'confirmed'          => 'Terkonfirmasi — Menunggu Sesi',
                         'ongoing'             => 'Sedang Berlangsung',
-                        'pending_settlement'  => 'Menunggu Konfirmasi',
+                        'pending_settlement'  => 'Selesai',
                         'completed'           => 'Selesai',
                     ][$booking->status] ?? $booking->status }}
                 </span>
@@ -70,14 +70,25 @@
             </div>
         </div>
 
-        {{-- Tombol masuk ruang chat (kalau waktunya sudah tiba) --}}
+        {{-- Tombol masuk ruang chat --}}
+        @php
+            $sessionStart = \Carbon\Carbon::parse($booking->booking_date->format('Y-m-d') . ' ' . $booking->start_time);
+            $isTimeYet = now()->greaterThanOrEqualTo($sessionStart);
+        @endphp
         <div class="px-6 pb-6">
             @if(in_array($booking->status, ['confirmed', 'ongoing']))
-                <button disabled
-                        class="w-full py-3 bg-slate-100 text-slate-400 font-semibold rounded-xl text-sm cursor-not-allowed">
-                    Ruang Konsultasi (tersedia saat jadwal tiba)
-                </button>
-                <p class="text-center text-xs text-slate-400 mt-2">Fitur chat akan diaktifkan di step selanjutnya</p>
+                @if($isTimeYet)
+                    <a href="{{ route('client.booking.room', $booking->id) }}"
+                       class="block text-center w-full py-3 bg-blue-900 hover:bg-indigo-900 text-white font-semibold rounded-xl text-sm shadow-sm transition-all">
+                        Masuk Ruang Konsultasi
+                    </a>
+                @else
+                    <button disabled
+                            class="w-full py-3 bg-slate-100 text-slate-400 font-semibold rounded-xl text-sm cursor-not-allowed"
+                            title="Tersedia pada jam {{ $sessionStart->format('H:i') }} WIB">
+                        Ruang Chat Belum Dibuka (Tersedia pukul {{ $sessionStart->format('H:i') }} WIB)
+                    </button>
+                @endif
             @endif
         </div>
 

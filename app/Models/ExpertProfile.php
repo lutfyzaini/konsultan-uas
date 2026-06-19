@@ -16,6 +16,20 @@ class ExpertProfile extends \Illuminate\Database\Eloquent\Model
         'is_online'   => 'boolean',
         'hourly_rate' => 'decimal:2',
     ];
+
+    protected $appends = ['badge'];
+
+    // Accessor for dynamic badges
+    public function getBadgeAttribute(): string
+    {
+        if ($this->average_rating >= 4.8 && $this->total_sessions >= 10) {
+            return 'Top Rated';
+        }
+        if ($this->is_online && $this->total_sessions > 5) {
+            return 'Top Active';
+        }
+        return 'Rising Star';
+    }
  
     // helpers
     public function isApproved(): bool { return $this->verification_status === 'approved'; }
@@ -30,11 +44,21 @@ class ExpertProfile extends \Illuminate\Database\Eloquent\Model
     }
  
     // relationships
-    public function user()          { return $this->belongsTo(User::class); }
-    public function category()      { return $this->belongsTo(Category::class); }
-    public function skills()        { return $this->belongsToMany(Skill::class, 'expert_skills'); }
-    public function availabilities(){ return $this->hasMany(Availability::class); }
-    public function bookings()      { return $this->hasMany(Booking::class); }
-    public function reviews()       { return $this->hasMany(Review::class); }
+    public function user()           { return $this->belongsTo(User::class); }
+    public function category()       { return $this->belongsTo(Category::class); }
+    public function skills()         { return $this->belongsToMany(Skill::class, 'expert_skills'); }
+    public function availabilities() { return $this->hasMany(Availability::class); }
+    public function bookings()       { return $this->hasMany(Booking::class); }
+    public function reviews()        { return $this->hasMany(Review::class); }
+    
+    public function educations()
+    {
+        return $this->hasMany(ExpertEducation::class, 'expert_profile_id');
+    }
+
+    public function certifications()
+    {
+        return $this->hasMany(ExpertCertification::class, 'expert_profile_id');
+    }
 }
 

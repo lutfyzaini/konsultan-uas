@@ -34,14 +34,11 @@ class DashboardController extends Controller
         // karena expert absen (bukan alasan pembatalan lain).
         $cancelledByExpertAbsent = Booking::where('client_id', $userId)
             ->where('status', 'cancelled')
-            ->whereHas('consultation', function ($query) {
-                $query->where('consultation_type', 'instant')
-                      ->whereNotNull('absence_resolved_at')
-                      ->where('absence_resolved_at', '>=', now()->subHours(24));
-            })
+            ->where('cancel_reason', 'expert_no_show')
+            ->where('updated_at', '>=', now()->subHours(24))
             // Eager load relasi yang dibutuhkan komponen alert
             ->with([
-                'expertProfile.user',
+                'expertProfile.user.profile',
                 'expertProfile.category',
                 'consultation',
             ])

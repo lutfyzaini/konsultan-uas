@@ -24,9 +24,16 @@
                 <div class="flex flex-col sm:flex-row gap-5">
 
                     {{-- Avatar besar --}}
-                    <div class="w-24 h-24 bg-gradient-to-br from-blue-100 to-teal-100 rounded-2xl flex items-center justify-center text-blue-900 font-bold text-3xl flex-shrink-0">
-                        {{ strtoupper(substr($expert->user->profile->name ?? 'XX', 0, 2)) }}
-                    </div>
+                    @php
+                        $avatarRaw = $expert->user->profile->avatar_url ?? null;
+                        $avatarUrl = $avatarRaw
+                            ? asset($avatarRaw)
+                            : 'https://ui-avatars.com/api/?name=' . urlencode($expert->user->profile->name ?? 'K') . '&background=1e3a5f&color=fff&size=192&bold=true';
+                    @endphp
+                    <img src="{{ $avatarUrl }}"
+                         alt="{{ $expert->user->profile->name ?? 'Konsultan' }}"
+                         class="w-24 h-24 rounded-2xl object-cover flex-shrink-0 border border-slate-200 shadow-sm"
+                         onerror="this.onerror=null;this.src='https://ui-avatars.com/api/?name={{ urlencode($expert->user->profile->name ?? 'K') }}&background=1e3a5f&color=fff&size=192&bold=true'">
 
                     <div class="flex-1">
                         <div class="flex flex-wrap items-start justify-between gap-3 mb-2">

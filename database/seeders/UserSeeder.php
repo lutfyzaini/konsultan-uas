@@ -75,12 +75,21 @@ class UserSeeder extends Seeder
                 ])
             );
 
+            // tentukan avatar sesuai role
+            $avatarSeed = match($user['email']) {
+                'siti@konsultasi.test'  => '/images/avatars/siti.png',
+                'budi@konsultasi.test'  => '/images/avatars/budi.png',
+                'andi@konsultasi.test'  => '/images/avatars/andi.png',
+                default                 => null,
+            };
+
             // buat user_profile untuk setiap user
             DB::table('user_profiles')->insert([
                 'user_id'    => $created,
                 'name'       => ucwords(str_replace('_', ' ', $user['username'])),
                 'phone'      => '08' . rand(100000000, 999999999),
-                'gender'     => ['male', 'female'][rand(0, 1)],
+                'gender'     => in_array($user['email'], ['siti@konsultasi.test']) ? 'female' : 'male',
+                'avatar_url' => $avatarSeed,
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);

@@ -82,17 +82,45 @@
                         </p>
                     </div>
                 </div>
-                <span @class([
-                    'text-xs font-semibold px-2.5 py-1 rounded-full',
-                    'bg-yellow-50 text-yellow-700'  => $b->status === 'pending_payment',
-                    'bg-blue-50 text-blue-700'      => $b->status === 'confirmed',
-                    'bg-teal-50 text-teal-700'      => $b->status === 'ongoing',
-                    'bg-green-50 text-green-700'    => $b->status === 'completed',
-                    'bg-red-50 text-red-600'        => $b->status === 'cancelled',
-                    'bg-slate-50 text-slate-500'    => !in_array($b->status, ['pending_payment','confirmed','ongoing','completed','cancelled']),
-                ])>
-                    {{ ucfirst(str_replace('_', ' ', $b->status)) }}
-                </span>
+                <div class="flex items-center gap-3">
+                    <span @class([
+                        'text-xs font-semibold px-2.5 py-1 rounded-full',
+                        'bg-yellow-50 text-yellow-700'  => $b->status === 'pending_payment',
+                        'bg-blue-50 text-blue-700'      => $b->status === 'confirmed',
+                        'bg-teal-50 text-teal-700'      => $b->status === 'ongoing',
+                        'bg-green-50 text-green-700'    => in_array($b->status, ['completed', 'pending_settlement']),
+                        'bg-red-50 text-red-600'        => $b->status === 'cancelled',
+                        'bg-slate-50 text-slate-500'    => !in_array($b->status, ['pending_payment','confirmed','ongoing','completed','pending_settlement','cancelled']),
+                    ])>
+                        {{ [
+                            'pending_payment'    => 'Belum Bayar',
+                            'confirmed'          => 'Terkonfirmasi',
+                            'ongoing'            => 'Berlangsung',
+                            'pending_settlement' => 'Selesai',
+                            'completed'          => 'Selesai',
+                            'cancelled'          => 'Dibatalkan',
+                            'disputed'           => 'Disengketakan',
+                        ][$b->status] ?? $b->status }}
+                    </span>
+
+                    {{-- TOMBOL AKSI CEPAT --}}
+                    @if($b->status === 'pending_payment')
+                        <a href="{{ $b->booking_type === 'instant' ? route('client.instant.payment', $b->id) : route('client.booking.payment', $b->id) }}"
+                           class="px-3.5 py-1.5 bg-amber-500 hover:bg-amber-600 text-white text-xs font-semibold rounded-xl shadow-sm transition">
+                            Bayar Sekarang
+                        </a>
+                    @elseif($b->status === 'ongoing' || $b->status === 'confirmed')
+                        <a href="{{ $b->booking_type === 'instant' ? route('client.instant.room', $b->id) : route('client.booking.room', $b->id) }}"
+                           class="px-3.5 py-1.5 bg-blue-900 hover:bg-indigo-900 text-white text-xs font-semibold rounded-xl shadow-sm transition">
+                            Masuk Chat
+                        </a>
+                    @else
+                        <a href="{{ route('client.booking.show', $b->id) }}"
+                           class="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-semibold rounded-xl transition">
+                            Detail
+                        </a>
+                    @endif
+                </div>
             </div>
             @endforeach
         </div>

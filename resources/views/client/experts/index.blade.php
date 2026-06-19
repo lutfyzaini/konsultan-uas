@@ -143,13 +143,20 @@
                 <div class="bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-200 overflow-hidden flex flex-col">
                     <div class="p-5 flex-1">
 
-                        {{-- Header card: avatar + online badge --}}
+                        {{-- Header card: foto + online badge --}}
                         <div class="flex items-start justify-between mb-4">
                             <div class="flex items-center gap-3">
-                                {{-- Avatar --}}
-                                <div class="w-12 h-12 bg-gradient-to-br from-blue-100 to-teal-100 rounded-xl flex items-center justify-center text-blue-900 font-bold text-base flex-shrink-0">
-                                    {{ strtoupper(substr($expert->user->profile->name ?? 'XX', 0, 2)) }}
-                                </div>
+                                {{-- Avatar foto --}}
+                                @php
+                                    $avatarRaw = $expert->user->profile->avatar_url ?? null;
+                                    $avatarUrl = $avatarRaw
+                                        ? asset($avatarRaw)
+                                        : 'https://ui-avatars.com/api/?name=' . urlencode($expert->user->profile->name ?? 'K') . '&background=1e3a5f&color=fff&size=96&bold=true';
+                                @endphp
+                                <img src="{{ $avatarUrl }}"
+                                     alt="{{ $expert->user->profile->name ?? 'Konsultan' }}"
+                                     class="w-12 h-12 rounded-xl object-cover flex-shrink-0 border border-slate-100"
+                                     onerror="this.onerror=null;this.src='https://ui-avatars.com/api/?name={{ urlencode($expert->user->profile->name ?? 'K') }}&background=1e3a5f&color=fff&size=96&bold=true'">
                                 <div>
                                     <h3 class="font-semibold text-slate-800 text-sm leading-tight">
                                         {{ $expert->user->profile->name ?? 'Konsultan' }}

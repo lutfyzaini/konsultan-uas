@@ -1,43 +1,42 @@
 @extends('layouts.app')
-@section('title', 'Ruang Konsultasi — ' . ($booking->expertProfile->user->profile->name ?? 'Expert'))
+@section('title', 'Ruang Konsultasi — ' . ($booking->client->profile->name ?? 'Klien'))
 
 @section('content')
 <div class="min-h-screen bg-slate-50 flex flex-col">
 
-    {{-- ═══════════════════════════════════════════════
-         HEADER — Info Expert & Status Sesi
-    ═══════════════════════════════════════════════ --}}
+    {{-- HEADER — Info Klien & Status Sesi --}}
     <div class="bg-blue-900 text-white shadow-lg flex-shrink-0">
         <div class="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
 
-            {{-- Avatar + Info Expert --}}
+            {{-- Avatar + Info Klien --}}
             <div class="flex items-center gap-3">
-                <a href="{{ route('client.dashboard') }}" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-all font-semibold mr-1" title="Kembali ke Dashboard">
+                <a href="{{ route('expert.dashboard') }}" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-all font-semibold mr-1" title="Kembali ke Dashboard">
                     ←
                 </a>
                 <div class="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center font-bold text-sm flex-shrink-0">
-                    {{ strtoupper(substr($booking->expertProfile->user->profile->name ?? 'XX', 0, 2)) }}
+                    {{ strtoupper(substr($booking->client->profile->name ?? 'XX', 0, 2)) }}
                 </div>
                 <div>
                     <p class="font-semibold text-sm leading-tight">
-                        {{ $booking->expertProfile->user->profile->name ?? 'Konsultan' }}
+                        Klien: {{ $booking->client->profile->name ?? 'Klien' }}
                     </p>
                     <p class="text-blue-300 text-xs">
-                        {{ $booking->expertProfile->category->name ?? '' }}
+                        Tipe Sesi: {{ ucfirst($booking->booking_type) }}
                     </p>
                 </div>
             </div>
 
-            {{-- Status & Countdown --}}
-            <div class="flex items-center gap-3">
-                {{-- Indikator kehadiran expert --}}
-                <div id="expert-status" class="flex items-center gap-1.5 text-xs">
-                    @if($booking->expert_joined)
+            {{-- Status & Countdown & Settle button --}}
+            <div class="flex items-center gap-4">
+                
+                {{-- Indikator Kehadiran Klien --}}
+                <div id="client-status" class="flex items-center gap-1.5 text-xs">
+                    @if($booking->client_joined)
                         <span class="w-2 h-2 bg-teal-400 rounded-full animate-pulse"></span>
-                        <span class="text-teal-300 font-medium">Expert Online</span>
+                        <span class="text-teal-300 font-medium">Klien Online</span>
                     @else
                         <span class="w-2 h-2 bg-amber-400 rounded-full animate-pulse"></span>
-                        <span class="text-amber-300 font-medium">Menunggu Expert...</span>
+                        <span class="text-amber-300 font-medium">Menunggu Klien...</span>
                     @endif
                 </div>
 
@@ -50,45 +49,55 @@
                     </p>
                 </div>
                 @endif
+
+                {{-- Tombol Akhiri Sesi --}}
+                <form action="{{ route('expert.consultation.end', $booking->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin mengakhiri sesi konsultasi ini?')">
+                    @csrf
+                    <button type="submit" class="px-3.5 py-1.5 bg-red-600 hover:bg-red-700 active:scale-95 text-white text-xs font-semibold rounded-xl shadow-sm transition">
+                        Akhiri Sesi
+                    </button>
+                </form>
             </div>
         </div>
     </div>
 
-    {{-- ═══════════════════════════════════════════════
-         BODY — Chat Box
-    ═══════════════════════════════════════════════ --}}
+    {{-- BODY — Chat Box --}}
     <div class="flex-1 max-w-4xl w-full mx-auto px-4 py-4 flex flex-col" style="height: calc(100vh - 130px)">
 
-        {{-- Flash message --}}
         @if(session('success'))
         <div class="mb-3 p-3 bg-teal-50 border border-teal-200 rounded-xl text-sm text-teal-700">
             {{ session('success') }}
         </div>
         @endif
 
-        {{-- Notifikasi sistem --}}
-        @if(!$booking->expert_joined)
+        @if(session('error'))
+        <div class="mb-3 p-3 bg-rose-50 border border-rose-200 rounded-xl text-sm text-rose-700">
+            {{ session('error') }}
+        </div>
+        @endif
+
+        {{-- Notifikasi Klien Belum Hadir --}}
+        @if(!$booking->client_joined)
         <div class="mb-3 flex items-start gap-2 p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-800">
             <svg class="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                       d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
             </svg>
-            <span>Kami telah memberi tahu Expert. Mohon tunggu — jika Expert tidak hadir dalam batas waktu, dana Anda akan dikembalikan 100%.</span>
+            <span>Klien belum memasuki ruang chat. Mohon tunggu. Jika klien tidak masuk setelah batas waktu, sesi akan dibatalkan otomatis dan Anda mendapat kompensasi penuh.</span>
         </div>
         @endif
 
-        {{-- ─── KOTAK CHAT ─── --}}
+        {{-- CHAT BOX --}}
         <div id="chat-box"
              class="flex-1 overflow-y-auto bg-white rounded-2xl border border-slate-200 shadow-sm p-4 space-y-3 mb-3">
 
-            {{-- Pesan awal sistem --}}
             <div class="flex justify-center">
                 <span class="text-[11px] text-slate-400 bg-slate-50 border border-slate-100 rounded-full px-3 py-1">
                     Sesi dimulai — {{ \Carbon\Carbon::parse($booking->consultation->started_at ?? now())->format('d M Y, H:i') }}
                 </span>
             </div>
 
-            {{-- Render pesan yang sudah ada (server-side) --}}
+            {{-- Render pesan server-side --}}
             @foreach($messages as $msg)
                 @php $isOwn = $msg->sender_id === auth()->id(); @endphp
                 <div class="flex {{ $isOwn ? 'justify-end' : 'justify-start' }}">
@@ -108,18 +117,18 @@
             @endforeach
         </div>
 
-        {{-- ─── INPUT PESAN ─── --}}
+        {{-- INPUT PESAN --}}
         <div class="flex gap-2 items-end flex-shrink-0">
             <div class="flex-1 bg-white border border-slate-200 rounded-2xl shadow-sm flex items-end gap-2 px-4 py-2.5">
                 <textarea id="msg-input" rows="1"
-                          placeholder="Tulis pesan konsultasi..."
+                          placeholder="Tulis pesan respon konsultasi..."
                           onkeydown="handleEnter(event)"
                           class="flex-1 resize-none text-sm focus:outline-none text-slate-800 placeholder-slate-400 max-h-32"
                           style="min-height: 24px;"></textarea>
             </div>
             <button onclick="sendMessage()"
                     id="send-btn"
-                    class="flex-shrink-0 w-11 h-11 bg-amber-600 hover:bg-amber-700 active:scale-95 text-white rounded-xl shadow-sm transition flex items-center justify-center">
+                    class="flex-shrink-0 w-11 h-11 bg-blue-900 hover:bg-indigo-900 active:scale-95 text-white rounded-xl shadow-sm transition flex items-center justify-center">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                           d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
@@ -129,35 +138,27 @@
 
     </div>
 </div>
+@endsection
 
 @push('scripts')
 <script>
-// ──────────────────────────────────────────────────────────────
-// KONFIGURASI
-// ──────────────────────────────────────────────────────────────
 const BOOKING_ID    = {{ $booking->id }};
 const AUTH_ID       = {{ auth()->id() }};
-const STATUS_URL    = "{{ route('client.instant.status', $booking->id) }}";
-const MESSAGE_URL   = "{{ route('client.instant.message', $booking->id) }}";
-const RESULT_URL    = "{{ route('client.instant.result', $booking->id) }}";
+const STATUS_URL    = "{{ route('expert.consultation.status', $booking->id) }}";
+const MESSAGE_URL   = "{{ route('expert.consultation.message', $booking->id) }}";
+const REDIRECT_URL  = "{{ route('expert.dashboard') }}";
 const CSRF_TOKEN    = "{{ csrf_token() }}";
 
-// Lacak ID pesan terakhir — hanya minta pesan baru, bukan semua ulang
 let lastMessageId = {{ $messages->isNotEmpty() ? $messages->last()->id : 0 }};
-
-// Sisa detik countdown (null = sudah tidak ada deadline)
 let secs = {{ $secondsRemaining !== null ? $secondsRemaining : 'null' }};
 
-// ──────────────────────────────────────────────────────────────
-// COUNTDOWN TIMER GEMBOK KEHADIRAN
-// ──────────────────────────────────────────────────────────────
+// Countdown Timer Kehadiran
 const countdownEl = document.getElementById('countdown');
 if (secs !== null && countdownEl) {
     const timerInterval = setInterval(() => {
         if (secs <= 0) {
             clearInterval(timerInterval);
             countdownEl.textContent = '00:00';
-            // Saat habis, beri jeda 2 detik sebelum redirect — polling akan tangkap lebih cepat
             return;
         }
         secs--;
@@ -165,16 +166,13 @@ if (secs !== null && countdownEl) {
         const s = (secs % 60).toString().padStart(2, '0');
         countdownEl.textContent = m + ':' + s;
 
-        // Ubah warna jadi merah jika sisa < 2 menit
         if (secs < 120) {
             countdownEl.classList.add('text-red-300');
         }
     }, 1000);
 }
 
-// ──────────────────────────────────────────────────────────────
-// RENDER SATU BUBBLE PESAN KE CHAT BOX
-// ──────────────────────────────────────────────────────────────
+// Append bubble chat
 function appendMessage(msg) {
     const box  = document.getElementById('chat-box');
     const wrap = document.createElement('div');
@@ -195,16 +193,13 @@ function appendMessage(msg) {
         </div>
     `;
     box.appendChild(wrap);
-    // Auto-scroll ke bawah setelah append
     box.scrollTop = box.scrollHeight;
 
-    // Update last message ID untuk polling berikutnya
     if (msg.id && msg.id > lastMessageId) {
         lastMessageId = msg.id;
     }
 }
 
-// Escape HTML agar XSS tidak bisa masuk via pesan chat
 function escapeHtml(str) {
     return String(str)
         .replace(/&/g, '&amp;')
@@ -213,15 +208,12 @@ function escapeHtml(str) {
         .replace(/"/g, '&quot;');
 }
 
-// ──────────────────────────────────────────────────────────────
-// KIRIM PESAN (AJAX POST)
-// ──────────────────────────────────────────────────────────────
+// Kirim pesan AJAX
 async function sendMessage() {
     const input  = document.getElementById('msg-input');
     const text   = input.value.trim();
     if (!text) return;
 
-    // Kosongkan input & nonaktifkan tombol sementara
     input.value = '';
     document.getElementById('send-btn').disabled = true;
 
@@ -238,20 +230,18 @@ async function sendMessage() {
 
         if (res.ok) {
             const data = await res.json();
-            // Tampilkan pesan milik sendiri langsung tanpa tunggu polling
             appendMessage({ ...data, is_own: true });
         } else {
-            alert('Gagal mengirim pesan. Coba lagi.');
+            alert('Gagal mengirim pesan.');
         }
     } catch (err) {
-        alert('Koneksi error. Periksa internet Anda.');
+        alert('Koneksi bermasalah.');
     } finally {
         document.getElementById('send-btn').disabled = false;
         input.focus();
     }
 }
 
-// Kirim dengan Enter (Shift+Enter = baris baru)
 function handleEnter(e) {
     if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
@@ -259,10 +249,7 @@ function handleEnter(e) {
     }
 }
 
-// ──────────────────────────────────────────────────────────────
-// AJAX POLLING — setiap 4 detik
-// Cek: status booking + pesan baru dari expert
-// ──────────────────────────────────────────────────────────────
+// Polling status dan pesan baru
 async function pollStatus() {
     try {
         const res = await fetch(`${STATUS_URL}?last_id=${lastMessageId}`, {
@@ -272,51 +259,42 @@ async function pollStatus() {
         if (!res.ok) return;
         const data = await res.json();
 
-        // 1. Jika booking dibatalkan atau selesai → redirect ke hasil
         if (data.redirect_to_result) {
-            window.location.href = RESULT_URL;
+            window.location.href = REDIRECT_URL;
             return;
         }
 
-        // 2. Update status kehadiran expert di header
-        if (data.expert_joined) {
-            const statusEl = document.getElementById('expert-status');
+        if (data.client_joined) {
+            const statusEl = document.getElementById('client-status');
             if (statusEl && statusEl.dataset.joined !== '1') {
                 statusEl.dataset.joined = '1';
                 statusEl.innerHTML = `
                     <span class="w-2 h-2 bg-teal-400 rounded-full animate-pulse"></span>
-                    <span class="text-teal-300 font-medium">Expert Online</span>
+                    <span class="text-teal-300 font-medium">Klien Online</span>
                 `;
-                // Sembunyikan countdown jika kedua pihak sudah hadir
                 const wrap = document.getElementById('countdown-wrap');
                 if (wrap) wrap.classList.add('hidden');
             }
         }
 
-        // 3. Update countdown dari server (sinkronisasi anti-drift)
         if (data.seconds_remaining !== null && secs !== null) {
             secs = data.seconds_remaining;
         }
 
-        // 4. Render pesan baru yang datang dari expert
         if (data.new_messages && data.new_messages.length > 0) {
             data.new_messages.forEach(msg => appendMessage(msg));
         }
 
     } catch (err) {
-        // Abaikan error jaringan — polling akan coba lagi 4 detik kemudian
         console.warn('Polling error:', err);
     }
 }
 
-// Mulai polling
 setInterval(pollStatus, 4000);
 
-// Scroll ke pesan terakhir saat halaman pertama kali load
 document.addEventListener('DOMContentLoaded', () => {
     const box = document.getElementById('chat-box');
     box.scrollTop = box.scrollHeight;
 });
 </script>
 @endpush
-@endsection

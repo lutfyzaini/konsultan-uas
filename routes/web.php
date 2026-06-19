@@ -36,6 +36,9 @@ Route::middleware(['auth', 'role:client'])->prefix('client')->name('client.')->g
     Route::get('/booking/{id}/payment',    [BookingController::class, 'payment'])->name('booking.payment');
     Route::post('/booking/{id}/pay',       [BookingController::class, 'pay'])->name('booking.pay');
     Route::post('/booking/{id}/cancel',    [BookingController::class, 'cancel'])->name('booking.cancel');
+    Route::get('/booking/{id}/room',       [BookingController::class, 'room'])->name('booking.room');
+    Route::post('/booking/{id}/message',   [BookingController::class, 'sendMessage'])->name('booking.message');
+    Route::get('/booking/{id}/status',     [BookingController::class, 'checkStatus'])->name('booking.status');
     Route::get('/booking/{id}',            [BookingController::class, 'show'])->name('booking.show');
 
     // ── INSTANT CONSULTATION FLOW ──
@@ -50,9 +53,20 @@ Route::middleware(['auth', 'role:client'])->prefix('client')->name('client.')->g
 
 // ── EXPERT ROUTES ────────────────────────────────────────────────
 Route::middleware(['auth', 'role:expert'])->prefix('expert')->name('expert.')->group(function () {
-    Route::get('/dashboard', fn() => view('expert.dashboard'))->name('dashboard');
-    Route::get('/profile/edit', fn() => view('expert.profile.edit'))->name('profile.edit');
-    // nanti ditambah: slots, consultation, finance
+    Route::get('/dashboard', [App\Http\Controllers\Expert\DashboardController::class, 'index'])->name('dashboard');
+    Route::post('/toggle-online', [App\Http\Controllers\Expert\DashboardController::class, 'toggleOnline'])->name('toggle-online');
+
+    Route::get('/profile/edit', [App\Http\Controllers\Expert\ProfileController::class, 'edit'])->name('profile.edit');
+    Route::put('/profile/update', [App\Http\Controllers\Expert\ProfileController::class, 'update'])->name('profile.update');
+
+    Route::get('/slots', [App\Http\Controllers\Expert\SlotController::class, 'index'])->name('slots.index');
+    Route::post('/slots', [App\Http\Controllers\Expert\SlotController::class, 'store'])->name('slots.store');
+    Route::delete('/slots/{id}', [App\Http\Controllers\Expert\SlotController::class, 'destroy'])->name('slots.destroy');
+
+    Route::get('/consultation/{id}/room', [App\Http\Controllers\Expert\ConsultationController::class, 'room'])->name('consultation.room');
+    Route::post('/consultation/{id}/message', [App\Http\Controllers\Expert\ConsultationController::class, 'sendMessage'])->name('consultation.message');
+    Route::get('/consultation/{id}/status', [App\Http\Controllers\Expert\ConsultationController::class, 'checkStatus'])->name('consultation.status');
+    Route::post('/consultation/{id}/end', [App\Http\Controllers\Expert\ConsultationController::class, 'endSession'])->name('consultation.end');
 });
 
 // ── ADMIN ROUTES ─────────────────────────────────────────────────

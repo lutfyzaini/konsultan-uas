@@ -102,7 +102,7 @@ class InstantConsultationController extends Controller
         $this->bookingService->markAttendance($booking, 'client');
 
         // Jika booking sudah selesai/dibatalkan (oleh cron), tendang ke halaman hasil
-        if (in_array($booking->status, ['cancelled', 'completed'])) {
+        if (in_array($booking->status, ['cancelled', 'completed', 'pending_settlement'])) {
             return redirect()->route('client.instant.result', $booking->id);
         }
 
@@ -227,7 +227,7 @@ class InstantConsultationController extends Controller
                 ? max(0, (int) now()->diffInSeconds($booking->attendance_deadline, false))
                 : null,
             // true = arahkan browser ke halaman result
-            'redirect_to_result'  => in_array($booking->status, ['cancelled', 'completed']),
+            'redirect_to_result'  => in_array($booking->status, ['cancelled', 'completed', 'pending_settlement']),
             'new_messages'        => $newMessages,
         ]);
     }
