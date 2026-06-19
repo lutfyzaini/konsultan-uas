@@ -25,10 +25,9 @@ class DashboardController extends Controller
         //
         // Kriteria:
         //   a) Milik client yang sedang login
-        //   b) Status booking = 'cancelled' (diset oleh InstantConsultationService)
-        //   c) Memiliki konsultasi bertipe 'instant'
-        //   d) absence_resolved_at ada (artinya sudah diproses oleh cron)
-        //   e) Dibatalkan dalam 24 jam terakhir (agar alert tidak abadi)
+        //   b) Status booking = 'cancelled' (diset oleh PaymentService)
+        //   c) Memiliki alasan pembatalan 'expert_no_show'
+        //   d) Dibatalkan dalam 24 jam terakhir (agar alert tidak abadi)
         //
         // Catatan: whereHas memastikan hanya booking yang benar-benar
         // karena expert absen (bukan alasan pembatalan lain).

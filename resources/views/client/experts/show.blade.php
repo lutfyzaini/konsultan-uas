@@ -32,7 +32,7 @@
                     @endphp
                     <img src="{{ $avatarUrl }}"
                          alt="{{ $expert->user->profile->name ?? 'Konsultan' }}"
-                         class="w-24 h-24 rounded-2xl object-cover flex-shrink-0 border border-slate-200 shadow-sm"
+                         class="w-28 h-28 sm:w-36 sm:h-36 rounded-3xl object-cover flex-shrink-0 border border-slate-200 shadow-sm"
                          onerror="this.onerror=null;this.src='https://ui-avatars.com/api/?name={{ urlencode($expert->user->profile->name ?? 'K') }}&background=1e3a5f&color=fff&size=192&bold=true'">
 
                     <div class="flex-1">
@@ -111,6 +111,59 @@
             </div>
             @endif
 
+            {{-- Pendidikan & Sertifikasi --}}
+            @if($expert->educations->isNotEmpty() || $expert->certifications->isNotEmpty())
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {{-- Pendidikan --}}
+                @if($expert->educations->isNotEmpty())
+                <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+                    <h2 class="font-semibold text-slate-800 mb-4 text-base flex items-center gap-2">
+                        <svg class="w-5 h-5 text-blue-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5zm0 0l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14zm-4 6v-7.5l4-2.222"/>
+                        </svg>
+                        Pendidikan
+                    </h2>
+                    <div class="space-y-4">
+                        @foreach($expert->educations as $edu)
+                        <div class="relative pl-6 border-l-2 border-slate-100 last:pb-0 pb-1">
+                            <div class="absolute -left-1.5 top-1.5 w-3 h-3 bg-blue-900 rounded-full"></div>
+                            <h4 class="font-semibold text-sm text-slate-800">{{ $edu->institution_name }}</h4>
+                            <p class="text-xs text-slate-600 mt-0.5">{{ $edu->degree }} • {{ $edu->field_of_study }}</p>
+                            <span class="inline-block text-[10px] font-bold text-slate-400 bg-slate-50 px-2 py-0.5 rounded border border-slate-100 mt-1">
+                                {{ $edu->start_year }} - {{ $edu->end_year ?? 'Sekarang' }}
+                            </span>
+                        </div>
+                        @endforeach
+                    </div>
+                </div>
+                @endif
+
+                {{-- Sertifikasi --}}
+                @if($expert->certifications->isNotEmpty())
+                <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+                    <h2 class="font-semibold text-slate-800 mb-4 text-base flex items-center gap-2">
+                        <svg class="w-5 h-5 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                        </svg>
+                        Sertifikasi
+                    </h2>
+                    <div class="space-y-4">
+                        @foreach($expert->certifications as $cert)
+                        <div class="relative pl-6 border-l-2 border-slate-100 last:pb-0 pb-1">
+                            <div class="absolute -left-1.5 top-1.5 w-3 h-3 bg-teal-500 rounded-full"></div>
+                            <h4 class="font-semibold text-sm text-slate-800">{{ $cert->certification_name }}</h4>
+                            <p class="text-xs text-slate-600 mt-0.5">{{ $cert->issuing_organization }}</p>
+                            <span class="inline-block text-[10px] font-bold text-slate-400 bg-slate-50 px-2 py-0.5 rounded border border-slate-100 mt-1">
+                                Diterbitkan: {{ $cert->issued_year }}
+                            </span>
+                        </div>
+                        @endforeach
+                    </div>
+                </div>
+                @endif
+            </div>
+            @endif
+
             {{-- Ulasan --}}
             <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
                 <div class="flex items-center justify-between mb-5">
@@ -174,12 +227,12 @@
                     <div class="text-slate-400 text-sm mt-1">per sesi (60 menit)</div>
                     <div class="mt-2">
                         <span @class([
-                            'text-xs font-semibold px-3 py-1 rounded-full',
-                            'bg-amber-50 text-amber-700' => $expert->commission_level === 'newbie',
-                            'bg-blue-50 text-blue-700'   => $expert->commission_level === 'pro',
-                            'bg-purple-50 text-purple-700' => $expert->commission_level === 'master',
+                            'text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider',
+                            'bg-amber-50 text-amber-700 border border-amber-100' => $expert->badge === 'Rising Star',
+                            'bg-blue-50 text-blue-700 border border-blue-100'   => $expert->badge === 'Top Active',
+                            'bg-purple-50 text-purple-700 border border-purple-100' => $expert->badge === 'Top Rated',
                         ])>
-                            Level {{ ucfirst($expert->commission_level) }}
+                            {{ $expert->badge === 'Top Rated' ? '⭐' : ($expert->badge === 'Top Active' ? '🔥' : '🚀') }} {{ $expert->badge }}
                         </span>
                     </div>
                 </div>

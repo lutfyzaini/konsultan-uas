@@ -221,12 +221,12 @@
                         {{-- Level badge --}}
                         <div class="flex items-center justify-between">
                             <span @class([
-                                'text-xs font-semibold px-2.5 py-1 rounded-full',
-                                'bg-amber-50 text-amber-700 border border-amber-100' => $expert->commission_level === 'newbie',
-                                'bg-blue-50 text-blue-700 border border-blue-100'   => $expert->commission_level === 'pro',
-                                'bg-purple-50 text-purple-700 border border-purple-100' => $expert->commission_level === 'master',
+                                'text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider',
+                                'bg-amber-50 text-amber-700 border border-amber-100' => $expert->badge === 'Rising Star',
+                                'bg-blue-50 text-blue-700 border border-blue-100'   => $expert->badge === 'Top Active',
+                                'bg-purple-50 text-purple-700 border border-purple-100' => $expert->badge === 'Top Rated',
                             ])>
-                                {{ ['newbie' => '🌱 Newbie', 'pro' => '⭐ Pro', 'master' => '🏆 Master'][$expert->commission_level] }}
+                                {{ $expert->badge === 'Top Rated' ? '⭐' : ($expert->badge === 'Top Active' ? '🔥' : '🚀') }} {{ $expert->badge }}
                             </span>
                             <span class="font-bold text-blue-900 text-sm">
                                 Rp {{ number_format($expert->hourly_rate, 0, ',', '.') }}<span class="font-normal text-slate-400 text-xs">/jam</span>

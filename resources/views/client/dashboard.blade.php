@@ -9,7 +9,7 @@
         <h1 class="text-2xl font-bold text-slate-800">
             Halo, {{ auth()->user()->profile->name ?? auth()->user()->email }}! 👋
         </h1>
-        <p class="text-slate-500 text-sm mt-1">Selamat datang di KonsulHub — temukan ahli terbaik untuk kebutuhanmu.</p>
+        <p class="text-slate-500 text-sm mt-1">Selamat datang di E-Konsul — temukan ahli terbaik untuk kebutuhanmu.</p>
     </div>
 
     {{-- Quick Stats --}}

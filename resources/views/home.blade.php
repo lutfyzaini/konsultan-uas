@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'KonsulHub — Temukan Ahli Profesional')
+@section('title', 'E-Konsul — Temukan Ahli Profesional')
 
 @section('content')
 
@@ -77,17 +77,16 @@
 
                     {{-- Placeholder ilustrasi --}}
                     <div class="bg-gradient-to-br from-blue-50 to-teal-50 rounded-3xl aspect-square flex items-center justify-center border border-blue-100 shadow-xl shadow-blue-100">
-                        <div class="text-center p-8">
-                            {{-- Ilustrasi SVG sederhana --}}
-                            <svg class="w-48 h-48 mx-auto text-blue-200" viewBox="0 0 200 200" fill="currentColor">
-                                <circle cx="100" cy="60" r="35" fill="#1E3A8A" opacity="0.15"/>
-                                <circle cx="100" cy="58" r="28" fill="#1E3A8A" opacity="0.3"/>
-                                <ellipse cx="100" cy="145" rx="55" ry="35" fill="#1E3A8A" opacity="0.15"/>
-                                <ellipse cx="100" cy="140" rx="45" ry="28" fill="#1E3A8A" opacity="0.25"/>
-                                <circle cx="45" cy="90" r="20" fill="#0D9488" opacity="0.2"/>
-                                <circle cx="155" cy="90" r="20" fill="#0D9488" opacity="0.2"/>
-                            </svg>
-                            <p class="text-blue-300 text-sm mt-2 font-medium">Ilustrasi Platform</p>
+                        <div class="text-center p-8 flex flex-col items-center justify-center">
+                            {{-- Logo E-Konsul besar --}}
+                            <div class="w-24 h-24 bg-gradient-to-br from-blue-900 to-blue-700 rounded-3xl flex items-center justify-center shadow-lg shadow-blue-900/30 mb-4 transform hover:scale-105 transition duration-300">
+                                <svg class="w-14 h-14 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                          d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                </svg>
+                            </div>
+                            <span class="text-3xl font-extrabold text-blue-900 tracking-tight font-heading">E-Konsul</span>
+                            <p class="text-slate-500 text-sm mt-1 max-w-[200px] text-center">Menghubungkan Solusi & Keahlian</p>
                         </div>
                     </div>
 
@@ -126,7 +125,7 @@
 
         {{-- Heading section --}}
         <div class="text-center mb-12">
-            <h2 class="text-3xl font-bold text-blue-900 mb-3">Mengapa Memilih KonsulHub?</h2>
+            <h2 class="text-3xl font-bold text-blue-900 mb-3">Mengapa Memilih E-Konsul?</h2>
             <p class="text-slate-500 max-w-xl mx-auto">Kami hadir untuk memastikan setiap konsultasi berjalan dengan aman, transparan, dan memberikan hasil nyata.</p>
         </div>
 

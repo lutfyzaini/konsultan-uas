@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Expert - KonsulHub</title>
+    <title>Dashboard Expert - E-Konsul</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
@@ -17,7 +17,7 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between h-16 items-center">
                 <div class="flex items-center gap-3">
-                    <span class="text-2xl font-bold bg-gradient-to-r from-blue-900 to-indigo-700 bg-clip-text text-transparent">KonsulHub</span>
+                    <span class="text-2xl font-bold bg-gradient-to-r from-blue-900 to-indigo-700 bg-clip-text text-transparent">E-Konsul</span>
                     <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-100">Expert Panel</span>
                 </div>
                 
@@ -144,13 +144,22 @@
                         </p>
                     </div>
 
-                    <!-- Level & Penalty -->
+                    <!-- Level & Penalty / Badge -->
                     <div class="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm">
-                        <p class="text-xs text-slate-400 uppercase tracking-wider font-semibold">Tingkatan Komisi</p>
-                        <h3 class="text-2xl font-bold text-slate-800 mt-2 capitalize">{{ $expert->commission_level }}</h3>
+                        <p class="text-xs text-slate-400 uppercase tracking-wider font-semibold">Lencana & Komisi</p>
+                        <h3 class="text-2xl font-bold text-slate-800 mt-2 flex items-center gap-1.5">
+                            @if($expert->badge === 'Top Rated')
+                            <span>⭐</span>
+                            @elseif($expert->badge === 'Top Active')
+                            <span>🔥</span>
+                            @else
+                            <span>🚀</span>
+                            @endif
+                            {{ $expert->badge }}
+                        </h3>
                         <div class="mt-4 flex justify-between text-xs text-slate-400 border-t border-slate-100 pt-4">
                             <span>Potongan Komisi: <strong>
-                                {{ $expert->commission_level === 'master' ? '10%' : ($expert->commission_level === 'pro' ? '15%' : '20%') }}
+                                {{ $expert->badge === 'Top Rated' ? '8% (Diskon +2%)' : '10%' }}
                             </strong></span>
                             <span class="text-red-500">Penalti No-Show: <strong>{{ $expert->penalty_count }}/3</strong></span>
                         </div>
@@ -237,7 +246,15 @@
                                                 {{ substr($booking->start_time, 0, 5) }} - {{ substr($booking->end_time, 0, 5) }}
                                             </td>
                                             <td class="py-3 px-4">
-                                                Rp {{ number_format($booking->payment->expert_earnings ?? $booking->total_price, 0, ',', '.') }}
+                                                @if($booking->payment)
+                                                    <div class="text-xs space-y-0.5">
+                                                        <div class="text-slate-500">Gross: Rp {{ number_format($booking->payment->amount, 0, ',', '.') }}</div>
+                                                        <div class="text-red-500">- Potongan ({{ $booking->payment->commission_rate }}%): Rp {{ number_format($booking->payment->platform_commission, 0, ',', '.') }}</div>
+                                                        <div class="font-bold text-slate-800">Net: Rp {{ number_format($booking->payment->expert_earnings, 0, ',', '.') }}</div>
+                                                    </div>
+                                                @else
+                                                    Rp {{ number_format($booking->total_price, 0, ',', '.') }}
+                                                @endif
                                             </td>
                                             <td class="py-3 px-4 text-right">
                                                 <span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase

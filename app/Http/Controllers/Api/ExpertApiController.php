@@ -94,7 +94,6 @@ class ExpertApiController extends Controller
             'hourly_rate_formatted' => 'Rp ' . number_format($expert->hourly_rate, 0, ',', '.'),
             'average_rating'      => round($expert->average_rating, 2),
             'total_sessions'      => $expert->total_sessions,
-            'commission_level'    => $expert->commission_level,
             'is_online'           => (bool) $expert->is_online,
             'verification_status' => $expert->verification_status,
             'badge'               => $expert->badge,

@@ -42,6 +42,27 @@ class UserSeeder extends Seeder
                 'role'     => 'expert',
                 'status'   => 'active',
             ],
+            [
+                'username' => 'rina_keuangan',
+                'email'    => 'rina_expert@konsultasi.test',
+                'password' => Hash::make('password'),
+                'role'     => 'expert',
+                'status'   => 'active',
+            ],
+            [
+                'username' => 'dian_medis',
+                'email'    => 'dian@konsultasi.test',
+                'password' => Hash::make('password'),
+                'role'     => 'expert',
+                'status'   => 'active',
+            ],
+            [
+                'username' => 'eko_pendidikan',
+                'email'    => 'eko@konsultasi.test',
+                'password' => Hash::make('password'),
+                'role'     => 'expert',
+                'status'   => 'active',
+            ],
 
             // ── CLIENT (3 orang) ──
             [
@@ -77,10 +98,13 @@ class UserSeeder extends Seeder
 
             // tentukan avatar sesuai role
             $avatarSeed = match($user['email']) {
-                'siti@konsultasi.test'  => '/images/avatars/siti.png',
-                'budi@konsultasi.test'  => '/images/avatars/budi.png',
-                'andi@konsultasi.test'  => '/images/avatars/andi.png',
-                default                 => null,
+                'siti@konsultasi.test'        => '/images/avatars/siti.png',
+                'budi@konsultasi.test'        => '/images/avatars/budi.png',
+                'andi@konsultasi.test'        => '/images/avatars/andi.png',
+                'rina_expert@konsultasi.test' => '/images/avatars/rina.png',
+                'dian@konsultasi.test'        => '/images/avatars/dian.png',
+                'eko@konsultasi.test'         => '/images/avatars/eko.png',
+                default                       => null,
             };
 
             // buat user_profile untuk setiap user
@@ -88,7 +112,7 @@ class UserSeeder extends Seeder
                 'user_id'    => $created,
                 'name'       => ucwords(str_replace('_', ' ', $user['username'])),
                 'phone'      => '08' . rand(100000000, 999999999),
-                'gender'     => in_array($user['email'], ['siti@konsultasi.test']) ? 'female' : 'male',
+                'gender'     => in_array($user['email'], ['siti@konsultasi.test', 'rina_expert@konsultasi.test', 'dian@konsultasi.test']) ? 'female' : 'male',
                 'avatar_url' => $avatarSeed,
                 'created_at' => now(),
                 'updated_at' => now(),

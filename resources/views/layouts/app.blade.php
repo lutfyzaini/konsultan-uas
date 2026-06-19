@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'KonsulHub') — Platform Konsultasi Profesional</title>
+    <title>@yield('title', 'E-Konsul') — Platform Consultasi Profesional</title>
 
     {{-- Google Fonts: Inter + Plus Jakarta Sans --}}
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -57,7 +57,7 @@
     @stack('styles')
 </head>
 
-<body class="bg-slate-50 text-slate-800 antialiased">
+<body class="bg-slate-50 text-slate-800 antialiased min-h-screen flex flex-col">
 
     {{-- ═══════════════════════════════════════════════
          NAVBAR
@@ -74,7 +74,7 @@
                                   d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
                         </svg>
                     </div>
-                    <span class="text-xl font-bold text-blue-900 tracking-tight">KonsulHub</span>
+                    <span class="text-xl font-bold text-blue-900 tracking-tight">E-Konsul</span>
                 </a>
 
                 {{-- Menu Desktop --}}
@@ -89,10 +89,7 @@
                               {{ request()->routeIs('experts.*') ? 'text-blue-900 bg-blue-50' : 'text-slate-600 hover:text-blue-900 hover:bg-slate-50' }}">
                         Cari Ahli
                     </a>
-                    <a href="#"
-                       class="px-4 py-2 text-sm font-medium rounded-lg transition text-slate-600 hover:text-blue-900 hover:bg-slate-50">
-                        Artikel
-                    </a>
+
                 </div>
 
                 {{-- CTA & User Menu Desktop --}}
@@ -145,7 +142,7 @@
             <div class="px-4 py-3 space-y-1">
                 <a href="{{ route('home') }}" class="block px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 rounded-lg">Home</a>
                 <a href="{{ route('experts.index') }}" class="block px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 rounded-lg">Cari Ahli</a>
-                <a href="#" class="block px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 rounded-lg">Artikel</a>
+
                 <div class="pt-2 border-t border-slate-100 flex flex-col gap-2">
                     @auth
                         <a href="{{ route(auth()->user()->role . '.dashboard') }}"
@@ -191,7 +188,7 @@
     {{-- ═══════════════════════════════════════════════
          KONTEN UTAMA
     ═══════════════════════════════════════════════ --}}
-    <main>
+    <main class="flex-grow">
         @yield('content')
     </main>
 
@@ -211,7 +208,7 @@
                                       d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
                             </svg>
                         </div>
-                        <span class="text-xl font-bold">KonsulHub</span>
+                        <span class="text-xl font-bold">E-Konsul</span>
                     </div>
                     <p class="text-slate-400 text-sm leading-relaxed max-w-xs">
                         Platform konsultasi profesional yang menghubungkan Anda dengan para ahli terpercaya di berbagai bidang.
@@ -224,17 +221,6 @@
                     <ul class="space-y-2 text-sm text-slate-400">
                         <li><a href="{{ route('experts.index') }}" class="hover:text-white transition">Cari Ahli</a></li>
                         <li><a href="{{ route('register') }}" class="hover:text-white transition">Daftar Jadi Ahli</a></li>
-                        <li><a href="#" class="hover:text-white transition">Artikel</a></li>
-                    </ul>
-                </div>
-
-                {{-- Legal --}}
-                <div>
-                    <h4 class="font-semibold text-sm mb-4 text-slate-300 uppercase tracking-wider">Legal</h4>
-                    <ul class="space-y-2 text-sm text-slate-400">
-                        <li><a href="#" class="hover:text-white transition">Kebijakan Privasi</a></li>
-                        <li><a href="#" class="hover:text-white transition">Syarat & Ketentuan</a></li>
-                        <li><a href="#" class="hover:text-white transition">Hubungi Kami</a></li>
                     </ul>
                 </div>
 
@@ -243,10 +229,8 @@
             {{-- Copyright --}}
             <div class="mt-10 pt-6 border-t border-slate-700 flex flex-col sm:flex-row items-center justify-between gap-3">
                 <p class="text-slate-400 text-sm">
-                    &copy; {{ date('Y') }} KonsulHub. Semua hak dilindungi.
-                </p>
-                <p class="text-slate-500 text-xs">Dibuat untuk Proyek UAS Pemrograman Web</p>
-            </div>
+                    &copy; {{ date('Y') }} E-Konsul. Semua hak dilindungi.
+                </p>            </div>
         </div>
     </footer>
 

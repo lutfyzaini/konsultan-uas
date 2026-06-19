@@ -48,9 +48,9 @@ class PaymentService
                 );
             }
 
-            // 4. Hitung komisi berdasarkan level expert saat ini
+            // 4. Hitung komisi berdasarkan badge expert saat ini (sesuai agent.md)
             $expert         = ExpertProfile::find($booking->expert_profile_id);
-            $commissionRate = $this->getCommissionRate($expert->commission_level);
+            $commissionRate = $this->getCommissionRate($expert);
             $commission     = $booking->total_price * ($commissionRate / 100);
             $expertEarnings = $booking->total_price - $commission;
 
@@ -211,15 +211,14 @@ class PaymentService
     }
 
     // ----------------------------------------------------------------
-    // HELPER: ambil persentase komisi berdasarkan level
+    // HELPER: ambil persentase komisi berdasarkan badge expert (sesuai agent.md)
     // ----------------------------------------------------------------
-    public function getCommissionRate(string $level): int
+    public function getCommissionRate(ExpertProfile $expert): int
     {
-        return match($level) {
-            'master' => 10,
-            'pro'    => 15,
-            default  => 20, // newbie
-        };
+        if ($expert->badge === 'Top Rated') {
+            return 8; // Top Rated: 8% platform fee (2% discount)
+        }
+        return 10; // Default platform fee: 10%
     }
 
     // ----------------------------------------------------------------

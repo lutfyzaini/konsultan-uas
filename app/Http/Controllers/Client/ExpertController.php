@@ -66,6 +66,8 @@ class ExpertController extends Controller
             'category',
             'skills',
             'reviews.client.profile',
+            'educations',
+            'certifications',
         ])
         ->where('verification_status', 'approved')
         ->findOrFail($id);
