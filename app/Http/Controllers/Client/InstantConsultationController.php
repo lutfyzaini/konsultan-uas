@@ -115,7 +115,7 @@ class InstantConsultationController extends Controller
 
         // Ambil histori pesan dari sesi ini (urutan kronologis)
         $messages = $booking->consultation
-            ? DB::table('chat_message')
+            ? DB::table('chat_messages')
                 ->where('consultation_id', $booking->consultation->id)
                 ->orderBy('created_at', 'asc')
                 ->get()
@@ -145,8 +145,8 @@ class InstantConsultationController extends Controller
             return response()->json(['error' => 'Sesi konsultasi tidak ditemukan.'], 404);
         }
 
-        // Simpan pesan ke tabel chat_message
-        $msg = DB::table('chat_message')->insertGetId([
+        // Simpan pesan ke tabel chat_messages
+        $msg = DB::table('chat_messages')->insertGetId([
             'consultation_id' => $booking->consultation->id,
             'sender_id'       => auth()->id(),
             'message'         => $request->message,
@@ -205,7 +205,7 @@ class InstantConsultationController extends Controller
         $newMessages = [];
 
         if ($booking->consultation) {
-            $newMessages = DB::table('chat_message')
+            $newMessages = DB::table('chat_messages')
                 ->where('consultation_id', $booking->consultation->id)
                 ->where('id', '>', $lastId)
                 ->orderBy('created_at', 'asc')

@@ -303,7 +303,7 @@ class PaymentService
 
     // ----------------------------------------------------------------
     // SETTLE: EXPERT TIDAK HADIR (no-show)
-    // Dana refund penuh ke client, expert dapat penalti (no_show_count)
+    // Dana refund penuh ke client, expert dapat penalti (penalty_count)
     // ----------------------------------------------------------------
     public function settleExpertNoShow(Booking $booking): void
     {
@@ -341,11 +341,11 @@ class PaymentService
 
             // ── PENALTI EXPERT ──
             $expert = $booking->expertProfile;
-            $expert->increment('no_show_count');
+            $expert->increment('penalty_count');
 
-            // auto-suspend jika no_show_count mencapai 3x (sama seperti aturan cancel biasa)
+            // auto-suspend jika penalty_count mencapai 3x (sama seperti aturan cancel biasa)
             $expert = $expert->fresh();
-            if ($expert->no_show_count >= 3) {
+            if ($expert->penalty_count >= 3) {
                 $expert->user->update(['status' => 'suspended']);
             }
         });

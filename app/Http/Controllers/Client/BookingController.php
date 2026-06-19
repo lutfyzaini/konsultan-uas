@@ -16,23 +16,34 @@ class BookingController extends Controller
     ) {}
 
     // ──────────────────────────────────────────────
-    // PROSES LOCK SLOT
-    // Dipanggil saat client klik "Booking Sekarang" di halaman detail expert
+    // DAFTAR BOOKING CLIENT
+    // GET /client/booking
+    // ──────────────────────────────────────────────
+    public function index()
+    {
+        $bookings = Booking::where('client_id', auth()->id())
+            ->where('booking_type', 'scheduled')
+            ->with(['expertProfile.user.profile', 'expertProfile.category'])
+            ->latest()
+            ->paginate(10);
+
+        return view('client.booking.index', compact('bookings'));
+    }
+
+    // ──────────────────────────────────────────────
+    // BUAT BOOKING TERJADWAL (lock slot)
     // POST /client/booking
     // ──────────────────────────────────────────────
     public function store(Request $request)
     {
         $request->validate([
             'availability_id' => 'required|integer|exists:availabilities,id',
-        ], [
-            'availability_id.required' => 'Pilih slot jadwal terlebih dahulu.',
-            'availability_id.exists'   => 'Slot tidak ditemukan.',
         ]);
 
         try {
             $booking = $this->bookingService->lockSlot(
                 $request->availability_id,
-                auth()->id()
+                auth()->id(),
             );
 
             return redirect()
@@ -46,46 +57,40 @@ class BookingController extends Controller
 
     // ──────────────────────────────────────────────
     // HALAMAN PEMBAYARAN
-    // Menampilkan countdown timer + tombol bayar
     // GET /client/booking/{id}/payment
     // ──────────────────────────────────────────────
     public function payment(int $id)
     {
         $booking = Booking::with(['expertProfile.user.profile', 'expertProfile.category', 'availability'])
             ->where('client_id', auth()->id())
+            ->where('booking_type', 'scheduled')
             ->findOrFail($id);
 
-        // kalau sudah dibayar / expired, redirect ke halaman yang sesuai
-        if ($booking->status === 'confirmed') {
-            return redirect()->route('client.booking.show', $booking->id)
-                ->with('success', 'Booking ini sudah dibayar.');
+        if ($booking->status !== 'pending_payment') {
+            return redirect()->route('client.booking.show', $booking->id);
         }
 
-        if ($booking->status === 'cancelled') {
-            return redirect()->route('experts.index')
-                ->with('error', 'Booking ini sudah dibatalkan / waktu pembayaran habis.');
-        }
-
-        // hitung sisa waktu dalam detik (untuk countdown JS) — dibulatkan jadi integer
         $secondsRemaining = max(0, (int) now()->diffInSeconds($booking->payment_deadline, false));
 
         return view('client.booking.payment', compact('booking', 'secondsRemaining'));
     }
 
     // ──────────────────────────────────────────────
-    // PROSES PEMBAYARAN
+    // PROSES BAYAR
     // POST /client/booking/{id}/pay
     // ──────────────────────────────────────────────
     public function pay(int $id)
     {
-        $booking = Booking::where('client_id', auth()->id())->findOrFail($id);
+        $booking = Booking::where('client_id', auth()->id())
+            ->where('booking_type', 'scheduled')
+            ->findOrFail($id);
 
         try {
             $this->paymentService->processPayment($booking);
 
             return redirect()
                 ->route('client.booking.show', $booking->id)
-                ->with('success', 'Pembayaran berhasil! Booking kamu sudah dikonfirmasi.');
+                ->with('success', 'Pembayaran berhasil! Sesi dijadwalkan.');
 
         } catch (\Exception $e) {
             return back()->with('error', $e->getMessage());
@@ -93,7 +98,32 @@ class BookingController extends Controller
     }
 
     // ──────────────────────────────────────────────
-    // DETAIL BOOKING (setelah berhasil dibayar)
+    // BATALKAN BOOKING
+    // POST /client/booking/{id}/cancel
+    // ──────────────────────────────────────────────
+    public function cancel(int $id)
+    {
+        $booking = Booking::where('client_id', auth()->id())
+            ->findOrFail($id);
+
+        if (! in_array($booking->status, ['pending_payment', 'confirmed'])) {
+            return back()->with('error', 'Booking ini tidak bisa dibatalkan.');
+        }
+
+        try {
+            $this->bookingService->cancelBooking($booking, 'user_cancelled');
+
+            return redirect()
+                ->route('client.booking.index')
+                ->with('success', 'Booking berhasil dibatalkan.');
+
+        } catch (\Exception $e) {
+            return back()->with('error', $e->getMessage());
+        }
+    }
+
+    // ──────────────────────────────────────────────
+    // DETAIL BOOKING
     // GET /client/booking/{id}
     // ──────────────────────────────────────────────
     public function show(int $id)
@@ -103,42 +133,12 @@ class BookingController extends Controller
             'expertProfile.category',
             'availability',
             'payment',
+            'consultation',
+            'review',
         ])
         ->where('client_id', auth()->id())
         ->findOrFail($id);
 
         return view('client.booking.show', compact('booking'));
-    }
-
-    // ──────────────────────────────────────────────
-    // RIWAYAT BOOKING
-    // GET /client/booking
-    // ──────────────────────────────────────────────
-    public function index()
-    {
-        $bookings = Booking::with(['expertProfile.user.profile', 'expertProfile.category'])
-            ->where('client_id', auth()->id())
-            ->latest()
-            ->paginate(10);
-
-        return view('client.booking.index', compact('bookings'));
-    }
-
-    // ──────────────────────────────────────────────
-    // BATALKAN BOOKING MANUAL (sebelum bayar)
-    // POST /client/booking/{id}/cancel
-    // ──────────────────────────────────────────────
-    public function cancel(int $id)
-    {
-        $booking = Booking::where('client_id', auth()->id())->findOrFail($id);
-
-        if ($booking->status !== 'pending_payment') {
-            return back()->with('error', 'Booking ini tidak bisa dibatalkan.');
-        }
-
-        $this->bookingService->cancelBooking($booking, 'cancelled_by_client');
-
-        return redirect()->route('experts.index')
-            ->with('success', 'Booking berhasil dibatalkan.');
     }
 }
