@@ -1,18 +1,18 @@
 # E-Konsul Project Context
 
-Dokumen ini berisi rangkuman arsitektur, teknologi, database, dan alur sistem dari aplikasi **E-Konsul** (sebelumnya KonsulHub). Gunakan dokumen ini sebagai referensi utama saat melakukan modifikasi atau penambahan fitur.
+Dokumen ini berisi rangkuman arsitektur, teknologi, database, alur sistem, dan kebijakan bisnis dari aplikasi **E-Konsul** (sebelumnya KonsulHub). Gunakan dokumen ini sebagai referensi utama saat melakukan modifikasi atau penambahan fitur.
 
 ---
 
-## 🛠️ Tech Stack & Library
+## I. Arsitektur & Teknologi
+
+### Tech Stack & Library
 - **Core Framework**: Laravel 11.x (PHP 8.2+)
 - **CSS Styling**: Tailwind CSS (via CDN di layouts)
 - **Database** : MySQL
 - **Real-time Chat**: AJAX/Polling (via controller room chat & status check)
 
----
-
-## 📂 Struktur Utama Proyek
+### Struktur Utama Proyek
 - [app/Models](file:///d:/laragon/www/projek/konsultasi-app/app/Models):
   - `User.php` (Model Autentikasi dengan relasi profil & role client/expert)
   - `Booking.php` (Data transaksi pemesanan sesi konsultasi terjadwal/instant)
@@ -27,11 +27,15 @@ Dokumen ini berisi rangkuman arsitektur, teknologi, database, dan alur sistem da
   - `Expert/` (DashboardController, ConsultationController, ProfileController, ScheduleController)
 - [routes/web.php](file:///d:/laragon/www/projek/konsultasi-app/routes/web.php) (Rute navigasi frontend, dashboard, room chat, dan transaksi)
 
+### Perintah Artisan Penting
+- **Menjalankan Pengujian**: `php artisan test`
+- **Menjalankan Migrasi**: `php artisan migrate`
+- **Mengecek Status Migrasi**: `php artisan migrate:status`
+- **Menjalankan Scheduler (Cron)**: `php artisan schedule:run` atau `php artisan instant:check-attendance`
+
 ---
 
-## 💾 Skema Database & Migrasi Penting
-
-Berikut adalah detail kolom, tipe data, dan atribut dari seluruh entitas database di dalam sistem E-Konsul:
+## II. Skema Database & Migrasi Penting
 
 ### 1. Pengguna & Profil (Users & Profiles)
 - **users** (Data akun pengguna)
@@ -178,106 +182,100 @@ Berikut adalah detail kolom, tipe data, dan atribut dari seluruh entitas databas
 
 ---
 
-## 🔄 Alur & Fitur Kunci
-### 1. Konsultasi Terjadwal (Scheduled Booking)
+## III. Alur Sistem Kunci
+
+### Konsultasi Terjadwal
 - Klien memilih slot ketersediaan (`availabilities`) dari profil Expert.
 - Klien membayar tarif konsultasi via Wallet (status booking menjadi `confirmed`).
 - Sesi konsultasi hanya dapat diakses saat waktu yang dijadwalkan tiba.
 
-### 2. Konsultasi Instan (Instant Consultation)
+### Konsultasi Instan
 - Klien langsung memesan ke Expert yang berstatus **Online**.
 - Setelah pembayaran sukses, sistem langsung membuat Booking bertipe `instant` dan memberikan batas kehadiran 10 menit (`attendance_deadline`).
-- Cronjob (`CheckInstantConsultations`) berjalan setiap menit memeriksa apakah salah satu pihak tidak hadir hingga batas waktu terlewati untuk melakukan tindakan penalti (refund atau klaim dana).
+- Cronjob (`CheckInstantConsultations` / `instant:check-attendance`) berjalan setiap menit memeriksa apakah salah satu pihak tidak hadir hingga batas waktu terlewati untuk melakukan tindakan penalti (refund atau klaim dana).
 
-### 3. Ruang Obrolan & Penutupan Otomatis (Chat Room Auto-Close)
+### Ruang Obrolan
 - Ketika salah satu pihak mengakhiri sesi, status konsultasi berubah menjadi `ended`.
 - Room chat akan terkunci secara otomatis sehingga tidak ada pesan baru yang dapat dikirim.
 - Riwayat chat tetap dapat dibaca dengan status "Selesai" (`done`).
 
-
-
 ---
 
-# 📋 [System Rules] Kebijakan Pembagian Hasil (Revenue Split)
+## IV. Kebijakan Bisnis & Keuangan
 
-Dokumen ini mendefinisikan *business rules* dan standar operasional terkait aliran dana, potongan biaya, dan transparansi antara Platform, Client, dan Expert. Agent AI **wajib** menggunakan aturan ini sebagai *Single Source of Truth* dalam menjawab atau memproses *logic* terkait keuangan aplikasi.
-
----
-
-## 1. Parameter Utama Pembagian Hasil
+### Parameter Utama Pembagian Hasil
 Sistem menggunakan model *Revenue Sharing* berbasis persentase proporsional yang diambil dari tarif dasar konsultasi.
+- **Platform Fee (Biaya Layanan)**: `10%` dari total tarif konsultasi.
+- **Expert Net Income (Pendapatan Pakar)**: `90%` dari total tarif konsultasi.
+- **Client Handling Fee (Biaya Admin Klien)**: `Rp 0` (Klien hanya membayar tarif murni yang ditetapkan oleh Pakar).
 
-*   **Platform Fee (Biaya Layanan):** `10%` dari total tarif konsultasi.
-*   **Expert Net Income (Pendapatan Pakar):** `90%` dari total tarif konsultasi.
-*   **Client Handling Fee (Biaya Admin Klien):** `Rp 0` (Klien hanya membayar tarif murni yang ditetapkan oleh Pakar).
+### Alur Keamanan Finansial (Sistem Escrow)
+1. **Fase Pembayaran**: Saat Client melakukan *booking*, pembayaran ditampung sementara di rekening/sistem sentral (Escrow). Saldo Expert **belum** bertambah.
+2. **Fase Eksekusi**: Konsultasi berjalan sesuai jadwal atau secara instan.
+3. **Fase Settlement (Pencairan)**: Sistem otomatis (`AutoApproveSettlements`) membagi dana 90:10 dan memindahkannya ke *Wallet* Expert **hanya setelah** sesi berstatus `completed`.
+4. **Fase Pembatalan (Refund)**: Jika Expert gagal hadir atau sesi dibatalkan sebelum dimulai, uang dikembalikan 100% ke Klien. Platform tidak mengambil komisi dari sesi yang gagal.
 
-## 2. Aturan Visibilitas & Transparansi UI/UX
-Sistem mengedepankan prinsip *Zero Hidden Fees*. Tampilan antarmuka harus mengikuti aturan visibilitas berikut:
-
-*   **Visibilitas Client (Halaman Checkout):** Hanya menampilkan **Subtotal Konsultasi**. Sistem tidak perlu membebani klien dengan informasi pemotongan platform di sisi ahli.
-*   **Visibilitas Expert (Input Tarif):** Saat Expert menetapkan atau mengubah harga di profil mereka, UI harus secara *real-time* menampilkan kalkulasi *Net Income* di bawah kolom input.
-*   **Visibilitas Expert (Dashboard Wallet):** Setiap entri transaksi pada riwayat pendapatan wajib menampilkan rincian tiga tingkat:
-    1.  `Gross Revenue` (Tarif Dasar)
-    2.  `Deduction` (Potongan Platform Fee 10% - ditampilkan dengan warna merah/minus)
-    3.  `Net Earnings` (Total Bersih yang masuk ke dompet)
-
-## 3. Alur Keamanan Finansial (Sistem Escrow)
-Agent harus memahami dan menjelaskan bahwa aliran uang dilindungi oleh sistem penahanan sementara.
-
-1.  **Fase Pembayaran:** Saat Client melakukan *booking*, pembayaran ditampung sementara di rekening/sistem sentral (Escrow). Saldo Expert **belum** bertambah.
-2.  **Fase Eksekusi:** Konsultasi berjalan sesuai jadwal atau secara instan.
-3.  **Fase Settlement (Pencairan):** Sistem otomatis (`AutoApproveSettlements`) membagi dana 90:10 dan memindahkannya ke *Wallet* Expert **hanya setelah** sesi berstatus `completed`.
-4.  **Fase Pembatalan (Refund):** Jika Expert gagal hadir atau sesi dibatalkan sebelum dimulai, uang dikembalikan 100% ke Klien. Platform tidak mengambil komisi dari sesi yang gagal.
-
----
-
-## 4. 🤖 Instruksi Khusus Agent (Response Directives)
-> **PENTING:** Saat merespons pertanyaan dari pengguna (Client maupun Expert) terkait uang, biaya, atau pembagian hasil, Agent **WAJIB** memberikan jawaban yang lugas, transparan, dan tidak berbelit-belit.
-
-*   **Jika Client bertanya:** *"Apakah ada biaya tambahan atau admin dari aplikasi?"*
-    *   **Standar Respons:** "Tidak ada. Anda hanya membayar harga murni sesuai dengan tarif yang dipasang oleh Pakar di profil mereka."
-*   **Jika Expert bertanya:** *"Berapa potongan komisi dari aplikasi ini?"* atau *"Bagaimana sistem gajinya?"*
-    *   **Standar Respons:** "Platform menerapkan sistem bagi hasil dengan persentase 90:10. Anda akan mendapatkan 90% (Pendapatan Bersih) dari setiap sesi yang selesai, sementara 10% dialokasikan sebagai biaya pemeliharaan platform. Pendapatan akan otomatis masuk ke menu Wallet Anda setelah status konsultasi selesai."
-
-
-## 3. Sistem Badge (Retensi & Apresiasi Expert)
+### Sistem Badge (Retensi & Apresiasi Expert)
 Platform menggunakan sistem *Badge* dinamis sebagai gamifikasi untuk memotivasi Expert, bukan sistem level berjenjang yang kaku. *Badge* dievaluasi secara berkala oleh sistem.
+- 🏅 **Fast Responder**:
+  - *Kriteria*: Memiliki rata-rata waktu respons di bawah 5 menit untuk *Instant Consultation* atau *Chat*.
+  - *Benefit*: Ditandai khusus di halaman pencarian saat Client memfilter "Butuh Cepat".
+- ⭐ **Top Rated**:
+  - *Kriteria*: Mempertahankan rating di atas 4.8 dari minimal 10 konsultasi terakhir.
+  - *Benefit (Financial Reward)*: Mendapatkan "Diskon Platform Fee" sebesar `2%`. (Potongan platform fee turun dari 10% menjadi 8%, sehingga Net Income naik menjadi 92%).
+- 🚀 **Rising Star**:
+  - *Kriteria*: Expert baru yang mendapatkan ulasan bintang 5 pada 3 sesi pertamanya.
+  - *Benefit*: Mendapat prioritas *boost* di algoritma rekomendasi beranda selama 1 bulan pertama.
 
-*   🏅 **Fast Responder:**
-    *   *Kriteria:* Memiliki rata-rata waktu respons di bawah 5 menit untuk *Instant Consultation* atau *Chat*.
-    *   *Benefit:* Ditandai khusus di halaman pencarian saat Client memfilter "Butuh Cepat".
-*   ⭐ **Top Rated:**
-    *   *Kriteria:* Mempertahankan rating di atas 4.8 dari minimal 10 konsultasi terakhir.
-    *   *Benefit (Financial Reward):* Mendapatkan "Diskon Platform Fee" sebesar `2%`. (Potongan fee turun dari 10% menjadi 8%, sehingga Net Income naik menjadi 92%).
-*   🚀 **Rising Star:**
-    *   *Kriteria:* Expert baru yang mendapatkan ulasan bintang 5 pada 3 sesi pertamanya.
-    *   *Benefit:* Mendapat prioritas *boost* di algoritma rekomendasi beranda selama 1 bulan pertama.
+---
+
+## V. Peran Aktor (Actors)
+
+### AKTOR: ADMIN (Gatekeeper & Hakim)
+- Mengelola kategori utama bidang ahli (CRUD Category).
+- Mengelola daftar keahlian spesifik (CRUD Skill).
+- Memverifikasi dokumen riwayat pendidikan dan sertifikat ahli (Approve/Reject status).
+- Mengawasi status akun seluruh user (Aktif/Suspend) untuk menjaga keamanan platform.
+- Memantau rincian biaya komisi platform 10% dan riwayat transfer dana bagi hasil ahli.
+- Mengawasi log transaksi dan histori booking sesi konsultasi terjadwal/instan.
+
+### AKTOR: EXPERT (Penyedia Jasa)
+- Mengatur profil kepakaran, bio, keahlian spesifik, riwayat pendidikan, dan berkas sertifikasi.
+- Menentukan slot ketersediaan jadwal serta mengubah status online secara real-time.
+- Melaksanakan sesi konsultasi chat/video dengan klien.
+- Menerima pendapatan bersih bagi hasil 90% (atau 92% jika memiliki badge Top Rated) yang ditransfer langsung ke dompet setelah sesi selesai.
+
+### AKTOR: CLIENT (Pengguna Jasa)
+- Mencari dan menyaring expert berdasarkan kategori, keahlian spesifik, status online, dan badge.
+- Melakukan pemesanan sesi konsultasi baik terjadwal maupun instan.
+- Melakukan transaksi pembayaran tanpa biaya admin tambahan (Zero Hidden Fees).
+- Berpartisipasi dalam room chat konsultasi dan menulis ulasan bintang atas layanan ahli.
 
 ---
 
-## 4. Standar Transparansi UI/UX & Frontend
-Sistem mengedepankan prinsip *Zero Hidden Fees*. Tampilan UI harus dikembangkan dengan aturan teknis berikut:
+## VI. Panduan Antarmuka (UI/UX)
 
-*   **Teknologi UI:** Pengembangan antarmuka **WAJIB** menggunakan *pure* Tailwind CSS *classes*. Dilarang keras menggunakan *library* komponen UI tambahan seperti DaisyUI agar sistem tetap ringan dan pengembang memiliki kontrol fundamental penuh terhadap tata letak.
-*   **Visibilitas Client:** Halaman *Checkout* hanya menampilkan total harga konsultasi. Dilarang membebani klien dengan informasi pemotongan platform.
-*   **Visibilitas Expert:** Halaman *Wallet* dan *Riwayat Transaksi* wajib memecah rincian dana menjadi:
-    1.  Tarif Dasar Konsultasi
-    2.  Potongan Platform (10% - warna merah)
-    3.  Bonus Badge (jika ada, misal: Top Rated Bonus +2% - warna hijau)
-    4.  Total Bersih (Net Earnings)
+### Standar Transparansi UI/UX & Frontend
+Sistem mengedepankan prinsip *Zero Hidden Fees*. Tampilan antarmuka harus mengikuti aturan visibilitas berikut:
+- **Visibilitas Client (Halaman Checkout)**: Hanya menampilkan **Subtotal Konsultasi**. Sistem tidak perlu membebani klien dengan informasi pemotongan platform di sisi ahli.
+- **Visibilitas Expert (Input Tarif)**: Saat Expert menetapkan atau mengubah harga di profil mereka, UI harus secara *real-time* menampilkan kalkulasi *Net Income* di bawah kolom input.
+- **Visibilitas Expert (Dashboard Wallet / Riwayat Transaksi)**: Setiap entri transaksi pada riwayat pendapatan wajib menampilkan rincian tiga tingkat:
+  1. `Gross Revenue` (Tarif Dasar)
+  2. `Deduction` (Potongan Platform Fee 10% - ditampilkan dengan warna merah/minus)
+  3. `Bonus Badge` (Jika ada, misal: Top Rated Bonus +2% - warna hijau)
+  4. `Net Earnings` (Total Bersih yang masuk ke dompet)
 
-## 👥 1. AKTOR: ADMIN (Gatekeeper & Hakim)
-Admin bertugas menjaga kualitas platform, mengelola sengketa, dan memantau pendapatan tanpa mencampuri alur transaksi otomatis.
-
-* **Master Data Management (CRUD):** Admin memegang kendali tunggal untuk menambah, mengubah, dan menghapus data Kategori Spesialisasi dan Keahlian (Skills). Expert dilarang membuat kategori baru secara mandiri demi integritas database.
-* **Verifikasi Pakar (Gatekeeper):** Meninjau pendaftaran Expert baru yang masuk dengan `verification_status = 'pending'`. Admin wajib memverifikasi validitas berkas di tabel `expert_educations` dan `expert_certifications` sebelum memberikan persetujuan (mengubah menjadi `'approved'`).
-* **Manajemen Sengketa (Dispute Resolution):** Bertindak sebagai penengah mutlak jika Client mengajukan komplain dalam masa Escrow (1x24 jam). Admin memiliki hak eksklusif untuk mengakses dan membaca histori `chat_messages`, lalu memberikan keputusan final: eksekusi **Refund ke Client** atau **Settle ke Expert**.
-* **Moderasi Pengguna (Strict Technical Rule):** Admin berhak memblokir pengguna (Client/Expert) nakal. Penangguhan akun **WAJIB** dilakukan dengan mengubah kolom `status` pada tabel `users` menjadi `'suspended'` (Dilarang menggunakan/membuat properti boolean `is_active`).
-* **Pemantauan Keuangan (Finance Dashboard):** Mengawasi total perputaran uang dan komisi platform (10%). Dasbor Admin **WAJIB** merujuk pada kolom `status` di tabel `payments` dengan nilai ENUM yang valid secara database saja, yaitu: `'unpaid'`, `'paid'`, atau `'refunded'`.
+### Standar Desain Antarmuka (Palette & Tipografi)
+- **Teknologi UI**: Pengembangan antarmuka **WAJIB** menggunakan *pure* Tailwind CSS *classes*. Dilarang keras menggunakan *library* komponen UI tambahan seperti DaisyUI agar sistem tetap ringan dan pengembang memiliki kontrol fundamental penuh terhadap tata letak.
+- **Tipografi**: Menggunakan desain tipografi modern (misal dari Google Fonts seperti Inter, Roboto, atau Outfit) alih-alih default browser.
 
 ---
-## ⚙️ Perintah Artisan Penting
-- **Menjalankan Pengujian**: `php artisan test`
-- **Menjalankan Migrasi**: `php artisan migrate`
-- **Mengecek Status Migrasi**: `php artisan migrate:status`
-- **Menjalankan Scheduler (Cron)**: `php artisan schedule:run` atau `php artisan instant:check-attendance`
+
+## VII. Instruksi Khusus Agent
+
+> **PENTING**: Saat merespons pertanyaan dari pengguna (Client maupun Expert) terkait uang, biaya, atau pembagian hasil, Agent **WAJIB** memberikan jawaban yang lugas, transparan, dan tidak berbelit-belit.
+
+- **Jika Client bertanya**: *"Apakah ada biaya tambahan atau admin dari aplikasi?"*
+  - **Standar Respons**: "Tidak ada. Anda hanya membayar harga murni sesuai dengan tarif yang dipasang oleh Pakar di profil mereka."
+- **Jika Expert bertanya**: *"Berapa potongan komisi dari aplikasi ini?"* atau *"Bagaimana sistem gajinya?"*
+  - **Standar Respons**: "Platform menerapkan sistem bagi hasil dengan persentase 90:10. Anda akan mendapatkan 90% (Pendapatan Bersih) dari setiap sesi yang selesai, sementara 10% dialokasikan sebagai biaya pemeliharaan platform. Pendapatan akan otomatis masuk ke menu Wallet Anda setelah status konsultasi selesai."
