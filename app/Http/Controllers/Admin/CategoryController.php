@@ -56,8 +56,14 @@ class CategoryController extends Controller
 
     public function destroy(Category $category)
     {
+        $isUsed = \App\Models\ExpertProfile::where('category_id', $category->id)->exists();
+
+        if ($isUsed) {
+            return back()->with('error', 'Kategori gagal dihapus karena masih digunakan oleh Pakar aktif.');
+        }
+
         $category->delete();
 
-        return back();
+        return back()->with('success', 'Kategori berhasil dihapus.');
     }
 }
