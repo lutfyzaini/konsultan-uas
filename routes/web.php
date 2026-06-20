@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\VerificationController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Client\BookingController;
 use App\Http\Controllers\Client\ExpertController;
@@ -70,7 +71,14 @@ Route::middleware(['auth', 'role:expert'])->prefix('expert')->name('expert.')->g
 });
 
 // ── ADMIN ROUTES ─────────────────────────────────────────────────
+use App\Http\Controllers\Admin\CategoryController;
+use App\Http\Controllers\Admin\SkillController;
 Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', fn() => view('admin.dashboard'))->name('dashboard');
+    Route::resource('categories', CategoryController::class);
+    Route::resource('skills', SkillController::class);
+    Route::get('/verifications',[VerificationController::class, 'index'])->name('verifications.index');
+    Route::post('/verifications/{expert}/approve',[VerificationController::class, 'approve'])->name('verifications.approve');
+    Route::post('/verifications/{expert}/reject',[VerificationController::class, 'reject'])->name('verifications.reject');
     // nanti ditambah: verification, user management, finance
 });
