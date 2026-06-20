@@ -7,7 +7,7 @@ Dokumen ini berisi rangkuman arsitektur, teknologi, database, dan alur sistem da
 ## 🛠️ Tech Stack & Library
 - **Core Framework**: Laravel 11.x (PHP 8.2+)
 - **CSS Styling**: Tailwind CSS (via CDN di layouts)
-- **Database**: SQLite / MySQL
+- **Database** : MySQL
 - **Real-time Chat**: AJAX/Polling (via controller room chat & status check)
 
 ---

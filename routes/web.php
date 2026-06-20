@@ -6,6 +6,7 @@ use App\Http\Controllers\Client\BookingController;
 use App\Http\Controllers\Client\ExpertController;
 use App\Http\Controllers\Client\InstantConsultationController;
 use App\Http\Controllers\HomeController;
+
 use Illuminate\Support\Facades\Route;
 
 // ── AUTH (guest only) ────────────────────────────────────────────
@@ -73,6 +74,9 @@ Route::middleware(['auth', 'role:expert'])->prefix('expert')->name('expert.')->g
 // ── ADMIN ROUTES ─────────────────────────────────────────────────
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\SkillController;
+use App\Http\Controllers\Admin\UserManagementController;
+use App\Http\Controllers\Admin\PaymentController;
+use App\Http\Controllers\Admin\BookingController as AdminBookingController;
 Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', fn() => view('admin.dashboard'))->name('dashboard');
     Route::resource('categories', CategoryController::class);
@@ -80,5 +84,9 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::get('/verifications',[VerificationController::class, 'index'])->name('verifications.index');
     Route::post('/verifications/{expert}/approve',[VerificationController::class, 'approve'])->name('verifications.approve');
     Route::post('/verifications/{expert}/reject',[VerificationController::class, 'reject'])->name('verifications.reject');
+    Route::get('/users', [UserManagementController::class, 'index'])->name('users.index');
+    Route::post('/users/{user}/toggle-status',[UserManagementController::class, 'toggleStatus'])->name('users.toggle');
+    Route::get('/payments',[PaymentController::class,'index'])->name('payments.index');
+    Route::get('/bookings',[AdminBookingController::class,'index'])->name('bookings.index');
     // nanti ditambah: verification, user management, finance
 });

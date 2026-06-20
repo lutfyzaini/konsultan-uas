@@ -8,7 +8,10 @@
 <body class="bg-gray-100 p-8">
 
 <div class="max-w-6xl mx-auto bg-white rounded-2xl shadow p-6">
-
+    <a href="{{ route('admin.dashboard') }}"
+    class="bg-gray-500 text-white px-4 py-2 rounded">
+    ← Dashboard
+    </a>
     <h1 class="text-2xl font-bold mb-6">
         Verifikasi Ahli
     </h1>

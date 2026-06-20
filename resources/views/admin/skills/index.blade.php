@@ -11,6 +11,10 @@
 
     <div class="flex justify-between items-center mb-6">
         <div>
+            <a href="{{ route('admin.dashboard') }}"
+            class="bg-gray-500 text-white px-4 py-2 rounded">
+            ← Dashboard
+            </a>
             <h1 class="text-2xl font-bold text-gray-800">
                 Daftar Skill
             </h1>
@@ -69,12 +73,6 @@
         </tbody>
     </table>
 
-    <div class="mt-6">
-        <a href="{{ route('admin.dashboard') }}"
-           class="text-blue-500 hover:underline">
-            ← Kembali ke Dashboard
-        </a>
-    </div>
 
 </div>
 
