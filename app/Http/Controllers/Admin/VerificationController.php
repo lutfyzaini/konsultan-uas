@@ -9,7 +9,7 @@ class VerificationController extends Controller
 {
     public function index()
     {
-        $experts = ExpertProfile::with('user')
+        $experts = ExpertProfile::with(['user.profile', 'category', 'educations', 'certifications', 'skills'])
             ->latest()
             ->get();
 

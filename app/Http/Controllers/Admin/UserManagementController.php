@@ -16,7 +16,7 @@ class UserManagementController extends Controller
 
     public function toggleStatus(User $user)
     {
-        $user->is_active = !$user->is_active;
+        $user->status = $user->status === 'active' ? 'suspended' : 'active';
         $user->save();
 
         return back();

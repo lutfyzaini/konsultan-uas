@@ -266,6 +266,15 @@ Sistem mengedepankan prinsip *Zero Hidden Fees*. Tampilan UI harus dikembangkan 
     3.  Bonus Badge (jika ada, misal: Top Rated Bonus +2% - warna hijau)
     4.  Total Bersih (Net Earnings)
 
+## 👥 1. AKTOR: ADMIN (Gatekeeper & Hakim)
+Admin bertugas menjaga kualitas platform, mengelola sengketa, dan memantau pendapatan tanpa mencampuri alur transaksi otomatis.
+
+* **Master Data Management (CRUD):** Admin memegang kendali tunggal untuk menambah, mengubah, dan menghapus data Kategori Spesialisasi dan Keahlian (Skills). Expert dilarang membuat kategori baru secara mandiri demi integritas database.
+* **Verifikasi Pakar (Gatekeeper):** Meninjau pendaftaran Expert baru yang masuk dengan `verification_status = 'pending'`. Admin wajib memverifikasi validitas berkas di tabel `expert_educations` dan `expert_certifications` sebelum memberikan persetujuan (mengubah menjadi `'approved'`).
+* **Manajemen Sengketa (Dispute Resolution):** Bertindak sebagai penengah mutlak jika Client mengajukan komplain dalam masa Escrow (1x24 jam). Admin memiliki hak eksklusif untuk mengakses dan membaca histori `chat_messages`, lalu memberikan keputusan final: eksekusi **Refund ke Client** atau **Settle ke Expert**.
+* **Moderasi Pengguna (Strict Technical Rule):** Admin berhak memblokir pengguna (Client/Expert) nakal. Penangguhan akun **WAJIB** dilakukan dengan mengubah kolom `status` pada tabel `users` menjadi `'suspended'` (Dilarang menggunakan/membuat properti boolean `is_active`).
+* **Pemantauan Keuangan (Finance Dashboard):** Mengawasi total perputaran uang dan komisi platform (10%). Dasbor Admin **WAJIB** merujuk pada kolom `status` di tabel `payments` dengan nilai ENUM yang valid secara database saja, yaitu: `'unpaid'`, `'paid'`, atau `'refunded'`.
+
 ---
 ## ⚙️ Perintah Artisan Penting
 - **Menjalankan Pengujian**: `php artisan test`
