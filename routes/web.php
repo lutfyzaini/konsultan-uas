@@ -42,6 +42,7 @@ Route::middleware(['auth', 'role:client'])->prefix('client')->name('client.')->g
     Route::post('/booking/{id}/message',   [BookingController::class, 'sendMessage'])->name('booking.message');
     Route::get('/booking/{id}/status',     [BookingController::class, 'checkStatus'])->name('booking.status');
     Route::get('/booking/{id}',            [BookingController::class, 'show'])->name('booking.show');
+    Route::post('/booking/{id}/review',    [BookingController::class, 'storeReview'])->name('booking.review');
 
     // ── INSTANT CONSULTATION FLOW ──
     Route::post('/instant/{expertId}',      [InstantConsultationController::class, 'create'])->name('instant.create');
@@ -65,6 +66,9 @@ Route::middleware(['auth', 'role:expert'])->prefix('expert')->name('expert.')->g
     Route::post('/slots', [App\Http\Controllers\Expert\SlotController::class, 'store'])->name('slots.store');
     Route::delete('/slots/{id}', [App\Http\Controllers\Expert\SlotController::class, 'destroy'])->name('slots.destroy');
 
+    Route::get('/withdrawals', [App\Http\Controllers\Expert\WithdrawalController::class, 'index'])->name('withdrawals.index');
+    Route::post('/withdrawals', [App\Http\Controllers\Expert\WithdrawalController::class, 'store'])->name('withdrawals.store');
+
     Route::get('/consultation/{id}/room', [App\Http\Controllers\Expert\ConsultationController::class, 'room'])->name('consultation.room');
     Route::post('/consultation/{id}/message', [App\Http\Controllers\Expert\ConsultationController::class, 'sendMessage'])->name('consultation.message');
     Route::get('/consultation/{id}/status', [App\Http\Controllers\Expert\ConsultationController::class, 'checkStatus'])->name('consultation.status');
@@ -77,6 +81,8 @@ use App\Http\Controllers\Admin\SkillController;
 use App\Http\Controllers\Admin\UserManagementController;
 use App\Http\Controllers\Admin\PaymentController;
 use App\Http\Controllers\Admin\BookingController as AdminBookingController;
+use App\Http\Controllers\Admin\PlatformSettingsController;
+
 Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', fn() => view('admin.dashboard'))->name('dashboard');
     Route::resource('categories', CategoryController::class);
@@ -88,5 +94,10 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::post('/users/{user}/toggle-status',[UserManagementController::class, 'toggleStatus'])->name('users.toggle');
     Route::get('/payments',[PaymentController::class,'index'])->name('payments.index');
     Route::get('/bookings',[AdminBookingController::class,'index'])->name('bookings.index');
+    Route::get('/settings', [PlatformSettingsController::class, 'index'])->name('settings.index');
+    Route::post('/settings', [PlatformSettingsController::class, 'update'])->name('settings.update');
+    Route::get('/withdrawals', [\App\Http\Controllers\Admin\WithdrawalController::class, 'index'])->name('withdrawals.index');
+    Route::post('/withdrawals/{id}/approve', [\App\Http\Controllers\Admin\WithdrawalController::class, 'approve'])->name('withdrawals.approve');
+    Route::post('/withdrawals/{id}/reject', [\App\Http\Controllers\Admin\WithdrawalController::class, 'reject'])->name('withdrawals.reject');
     // nanti ditambah: verification, user management, finance
 });

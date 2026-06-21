@@ -59,6 +59,8 @@ class BookingService
             // 7. Buat record booking baru
             $expert = ExpertProfile::findOrFail($slot->expert_profile_id);
 
+            $lockMinutes = (int) \App\Models\PlatformSetting::getValue('auto_cancel_minutes', 15);
+
             $booking = Booking::create([
                 'client_id'           => $clientId,
                 'expert_profile_id'   => $slot->expert_profile_id,
@@ -68,7 +70,7 @@ class BookingService
                 'end_time'            => $slot->end_time,
                 'status'              => 'pending_payment',
                 'total_price'         => $expert->hourly_rate,
-                'payment_deadline'    => now()->addMinutes(self::LOCK_MINUTES),
+                'payment_deadline'    => now()->addMinutes($lockMinutes),
             ]);
 
             return $booking;
@@ -92,8 +94,82 @@ class BookingService
                 ]);
             }
 
+            // check if status was confirmed (paid) -> refund
+            if ($booking->status === 'confirmed') {
+                $payment = $booking->payment;
+                if ($payment && $payment->status === 'paid') {
+                    $clientWallet = \App\Models\Wallet::where('user_id', $booking->client_id)->lockForUpdate()->first();
+                    
+                    // Cek sisa waktu menuju sesi
+                    $sessionStart = \Carbon\Carbon::parse($booking->booking_date->format('Y-m-d') . ' ' . $booking->start_time);
+                    $hoursToSession = now()->diffInHours($sessionStart, false);
+
+                    if ($hoursToSession >= 0 && $hoursToSession < 2) {
+                        // Refund 80% ke client, 20% kompensasi ke expert
+                        $refundAmount = $payment->amount * 0.8;
+                        $compensationAmount = $payment->amount * 0.2;
+
+                        if ($clientWallet) {
+                            $balanceBeforeClient = $clientWallet->balance;
+                            $clientWallet->increment('balance', $refundAmount);
+                            $clientWallet->decrement('total_withdrawn', $refundAmount);
+
+                            \App\Models\WalletTransaction::create([
+                                'wallet_id'      => $clientWallet->id,
+                                'booking_id'     => $booking->id,
+                                'type'           => 'credit',
+                                'amount'         => $refundAmount,
+                                'balance_before' => $balanceBeforeClient,
+                                'balance_after'  => $clientWallet->fresh()->balance,
+                                'description'    => 'Refund 80% (batal < 2 jam) booking #' . $booking->id,
+                            ]);
+                        }
+
+                        $expertUser = $booking->expertProfile->user;
+                        $expertWallet = \App\Models\Wallet::where('user_id', $expertUser->id)->lockForUpdate()->first();
+                        if ($expertWallet) {
+                            $balanceBeforeExpert = $expertWallet->balance;
+                            $expertWallet->increment('balance', $compensationAmount);
+                            $expertWallet->increment('total_earned', $compensationAmount);
+
+                            \App\Models\WalletTransaction::create([
+                                'wallet_id'      => $expertWallet->id,
+                                'booking_id'     => $booking->id,
+                                'type'           => 'credit',
+                                'amount'         => $compensationAmount,
+                                'balance_before' => $balanceBeforeExpert,
+                                'balance_after'  => $expertWallet->fresh()->balance,
+                                'description'    => 'Kompensasi 20% pembatalan client < 2 jam, booking #' . $booking->id,
+                            ]);
+                        }
+                    } else {
+                        // Refund 100% ke client
+                        if ($clientWallet) {
+                            $balanceBeforeClient = $clientWallet->balance;
+                            $clientWallet->increment('balance', $payment->amount);
+                            $clientWallet->decrement('total_withdrawn', $payment->amount);
+
+                            \App\Models\WalletTransaction::create([
+                                'wallet_id'      => $clientWallet->id,
+                                'booking_id'     => $booking->id,
+                                'type'           => 'credit',
+                                'amount'         => $payment->amount,
+                                'balance_before' => $balanceBeforeClient,
+                                'balance_after'  => $clientWallet->fresh()->balance,
+                                'description'    => 'Refund 100% pembatalan booking #' . $booking->id,
+                            ]);
+                        }
+                    }
+
+                    $payment->update(['status' => 'refunded']);
+                }
+            }
+
             // update status booking
-            $booking->update(['status' => 'cancelled']);
+            $booking->update([
+                'status' => 'cancelled',
+                'cancel_reason' => $reason,
+            ]);
         });
     }
 
@@ -151,12 +227,24 @@ class BookingService
         });
     }
 
+    public function checkAndAutoEndSession(Booking $booking): void
+    {
+        if ($booking->status === 'ongoing' && $booking->session_started_at) {
+            $durationHours = (int) \App\Models\PlatformSetting::getValue('session_duration_hours', 1);
+            $limitTime = Carbon::parse($booking->session_started_at)->addHours($durationHours);
+            if (now()->isAfter($limitTime)) {
+                $this->endSession($booking);
+            }
+        }
+    }
+
     // ----------------------------------------------------------------
     // RILIS SLOT EXPIRED (dipanggil oleh cron job setiap menit)
     // ----------------------------------------------------------------
     public function releaseExpiredSlots(): int
     {
-        $expiredTime = now()->subMinutes(self::LOCK_MINUTES);
+        $lockMinutes = (int) \App\Models\PlatformSetting::getValue('auto_cancel_minutes', 15);
+        $expiredTime = now()->subMinutes($lockMinutes);
         $count       = 0;
 
         // ambil semua slot yang sudah locked > 15 menit
@@ -247,6 +335,8 @@ class BookingService
                 throw new \Exception('Kamu masih punya sesi instant yang aktif. Selesaikan dulu sebelum membuat sesi baru.');
             }
 
+            $lockMinutes = (int) \App\Models\PlatformSetting::getValue('auto_cancel_minutes', 15);
+
             $booking = Booking::create([
                 'client_id'         => $clientId,
                 'expert_profile_id' => $expert->id,
@@ -257,7 +347,7 @@ class BookingService
                 'status'            => 'pending_payment',
                 'booking_type'      => 'instant',
                 'total_price'       => $expert->hourly_rate,
-                'payment_deadline'  => now()->addMinutes(self::LOCK_MINUTES),
+                'payment_deadline'  => now()->addMinutes($lockMinutes),
             ]);
 
             return $booking;

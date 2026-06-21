@@ -48,6 +48,31 @@ class PaymentService
                 );
             }
 
+            // Cek buffer 30 menit sebelum/sesudah slot booked pakar lainnya
+            $sessionStart = Carbon::parse($booking->booking_date->format('Y-m-d') . ' ' . $booking->start_time);
+            $sessionEnd = Carbon::parse($booking->booking_date->format('Y-m-d') . ' ' . $booking->end_time);
+
+            $otherBookings = Booking::where('expert_profile_id', $booking->expert_profile_id)
+                ->where('id', '!=', $booking->id)
+                ->whereDate('booking_date', $booking->booking_date)
+                ->whereIn('status', ['confirmed', 'ongoing'])
+                ->get();
+
+            foreach ($otherBookings as $other) {
+                $otherStart = Carbon::parse($booking->booking_date->format('Y-m-d') . ' ' . $other->start_time);
+                $otherEnd = Carbon::parse($booking->booking_date->format('Y-m-d') . ' ' . $other->end_time);
+
+                // Sesi lain mulai kurang dari 30 menit setelah sesi ini selesai
+                if ($otherStart->greaterThanOrEqualTo($sessionEnd) && $sessionEnd->diffInMinutes($otherStart) < 30) {
+                    throw new \Exception('Pakar sedang bersiap untuk sesi lain, silakan cari pakar lain.');
+                }
+
+                // Sesi ini mulai kurang dari 30 menit setelah sesi lain selesai
+                if ($sessionStart->greaterThanOrEqualTo($otherEnd) && $otherEnd->diffInMinutes($sessionStart) < 30) {
+                    throw new \Exception('Pakar sedang bersiap untuk sesi lain, silakan cari pakar lain.');
+                }
+            }
+
             // 4. Hitung komisi berdasarkan badge expert saat ini (sesuai agent.md)
             $expert         = ExpertProfile::find($booking->expert_profile_id);
             $commissionRate = $this->getCommissionRate($expert);
@@ -215,10 +240,13 @@ class PaymentService
     // ----------------------------------------------------------------
     public function getCommissionRate(ExpertProfile $expert): int
     {
+        $platformFee = (int) \App\Models\PlatformSetting::getValue('platform_fee_percentage', 10);
+        $topRatedDiscount = (int) \App\Models\PlatformSetting::getValue('top_rated_discount_percentage', 2);
+
         if ($expert->badge === 'Top Rated') {
-            return 8; // Top Rated: 8% platform fee (2% discount)
+            return max(0, $platformFee - $topRatedDiscount);
         }
-        return 10; // Default platform fee: 10%
+        return $platformFee;
     }
 
     // ----------------------------------------------------------------

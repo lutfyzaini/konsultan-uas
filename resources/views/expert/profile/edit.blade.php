@@ -78,10 +78,18 @@
                                class="w-full px-4 py-3 rounded-2xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-900 text-sm text-slate-700 font-medium" min="0" required>
                     </div>
 
+                    @php
+                        $platformFee = (int) \App\Models\PlatformSetting::getValue('platform_fee_percentage', 10);
+                        $topRatedDiscount = (int) \App\Models\PlatformSetting::getValue('top_rated_discount_percentage', 2);
+                        $commissionRate = $expert->badge === 'Top Rated' ? max(0, $platformFee - $topRatedDiscount) : $platformFee;
+                    @endphp
                     <div>
                         <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Tarif Per Jam (Rp)</label>
-                        <input type="number" name="hourly_rate" value="{{ old('hourly_rate', (int)$expert->hourly_rate) }}" 
+                        <input type="number" name="hourly_rate" id="hourly_rate_input" value="{{ old('hourly_rate', (int)$expert->hourly_rate) }}" 
                                class="w-full px-4 py-3 rounded-2xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-900 text-sm text-slate-700 font-medium" min="0" required>
+                        <p class="text-xs text-slate-400 mt-1.5" id="net_earnings_preview">
+                            Estimasi Pendapatan Bersih (Net): <strong class="text-slate-700">Rp 0</strong> (Potongan Platform {{ $commissionRate }}%)
+                        </p>
                     </div>
                 </div>
 
@@ -268,6 +276,21 @@
             };
             reader.readAsDataURL(event.target.files[0]);
         }
+
+        // Live Net Earnings Calculator
+        const hourlyRateInput = document.getElementById('hourly_rate_input');
+        const netEarningsPreview = document.getElementById('net_earnings_preview');
+        const commissionRate = {{ $commissionRate }};
+
+        function updateNetEarnings() {
+            const val = parseFloat(hourlyRateInput.value) || 0;
+            const net = val - (val * (commissionRate / 100));
+            const formatted = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(net);
+            netEarningsPreview.querySelector('strong').textContent = formatted;
+        }
+
+        hourlyRateInput.addEventListener('input', updateNetEarnings);
+        updateNetEarnings();
     </script>
 </body>
 </html>

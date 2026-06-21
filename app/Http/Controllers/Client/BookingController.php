@@ -105,6 +105,10 @@ class BookingController extends Controller
         $booking = Booking::where('client_id', auth()->id())
             ->findOrFail($id);
 
+        if ($booking->booking_type === 'instant') {
+            return back()->with('error', 'Pesanan instan tidak bisa dibatalkan secara manual.');
+        }
+
         if (! in_array($booking->status, ['pending_payment', 'confirmed'])) {
             return back()->with('error', 'Booking ini tidak bisa dibatalkan.');
         }
@@ -237,6 +241,9 @@ class BookingController extends Controller
             ->where('client_id', auth()->id())
             ->findOrFail($id);
 
+        $this->bookingService->checkAndAutoEndSession($booking);
+        $booking->refresh();
+
         $lastId = (int) $request->query('last_id', 0);
         $newMessages = [];
 
@@ -265,5 +272,34 @@ class BookingController extends Controller
             'redirect_to_result' => in_array($booking->status, ['cancelled', 'completed', 'pending_settlement']),
             'new_messages'       => $newMessages,
         ]);
+    }
+
+    public function storeReview(Request $request, int $id)
+    {
+        $booking = Booking::where('client_id', auth()->id())
+            ->findOrFail($id);
+
+        if ($booking->status !== 'completed') {
+            return back()->with('error', 'Ulasan hanya dapat diberikan jika sesi konsultasi telah selesai.');
+        }
+
+        // Cek ulasan sudah ada
+        if ($booking->review) {
+            return back()->with('error', 'Anda sudah memberikan ulasan untuk booking ini.');
+        }
+
+        $request->validate([
+            'rating' => 'required|integer|min:1|max:5',
+            'comment' => 'nullable|string|max:1000',
+        ]);
+
+        $booking->review()->create([
+            'client_id' => auth()->id(),
+            'expert_profile_id' => $booking->expert_profile_id,
+            'rating' => $request->rating,
+            'comment' => $request->comment,
+        ]);
+
+        return back()->with('success', 'Terima kasih atas ulasan Anda!');
     }
 }

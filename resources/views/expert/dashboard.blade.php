@@ -111,6 +111,9 @@
                         <a href="{{ route('expert.slots.index') }}" class="flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-all">
                             <span>📅</span> Kelola Slot Jadwal
                         </a>
+                        <a href="{{ route('expert.withdrawals.index') }}" class="flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-all">
+                            <span>💸</span> Tarik Saldo
+                        </a>
                         <a href="{{ route('expert.profile.edit') }}" class="flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-all">
                             <span>⚙️</span> Edit Profil Pakar
                         </a>
@@ -128,8 +131,11 @@
                         <div class="absolute -right-8 -bottom-8 text-white/5 text-9xl font-bold">Rp</div>
                         <p class="text-xs text-white/70 uppercase tracking-wider font-semibold">Saldo Wallet</p>
                         <h3 class="text-2xl font-bold mt-2">Rp {{ number_format($wallet->balance, 0, ',', '.') }}</h3>
-                        <div class="mt-4 flex gap-4 text-xs text-white/80 border-t border-white/10 pt-4">
-                            <div>Total Pendapatan: <strong class="text-white">Rp {{ number_format($wallet->total_earned, 0, ',', '.') }}</strong></div>
+                        <div class="mt-4 flex justify-between items-center border-t border-white/10 pt-4">
+                            <span class="text-xs text-white/80">Total Pendapatan: <strong class="text-white">Rp {{ number_format($wallet->total_earned, 0, ',', '.') }}</strong></span>
+                            <a href="{{ route('expert.withdrawals.index') }}" class="px-3 py-1.5 bg-white text-blue-900 rounded-xl text-xs font-bold hover:bg-slate-100 transition-all shadow-sm">
+                                Tarik Dana
+                            </a>
                         </div>
                     </div>
                     
@@ -248,9 +254,19 @@
                                             <td class="py-3 px-4">
                                                 @if($booking->payment)
                                                     <div class="text-xs space-y-0.5">
-                                                        <div class="text-slate-500">Gross: Rp {{ number_format($booking->payment->amount, 0, ',', '.') }}</div>
-                                                        <div class="text-red-500">- Potongan ({{ $booking->payment->commission_rate }}%): Rp {{ number_format($booking->payment->platform_commission, 0, ',', '.') }}</div>
-                                                        <div class="font-bold text-slate-800">Net: Rp {{ number_format($booking->payment->expert_earnings, 0, ',', '.') }}</div>
+                                                        <div class="text-slate-500">Gross Revenue: Rp {{ number_format($booking->payment->amount, 0, ',', '.') }}</div>
+                                                        @if($booking->payment->commission_rate < 10)
+                                                            @php
+                                                                $gross = $booking->payment->amount;
+                                                                $stdDeduction = $gross * 0.10;
+                                                                $bonus = $gross * 0.02;
+                                                            @endphp
+                                                            <div class="text-red-500">- Platform Fee (10%): Rp {{ number_format($stdDeduction, 0, ',', '.') }}</div>
+                                                            <div class="text-green-600">+ Bonus Badge (Top Rated +2%): Rp {{ number_format($bonus, 0, ',', '.') }}</div>
+                                                        @else
+                                                            <div class="text-red-500">- Platform Fee (10%): Rp {{ number_format($booking->payment->platform_commission, 0, ',', '.') }}</div>
+                                                        @endif
+                                                        <div class="font-bold text-slate-800 border-t border-slate-100 pt-0.5 mt-0.5">Net Earnings: Rp {{ number_format($booking->payment->expert_earnings, 0, ',', '.') }}</div>
                                                     </div>
                                                 @else
                                                     Rp {{ number_format($booking->total_price, 0, ',', '.') }}

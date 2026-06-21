@@ -119,6 +119,9 @@ class ConsultationController extends Controller
             ->where('expert_profile_id', $expert->id)
             ->findOrFail($id);
 
+        $this->bookingService->checkAndAutoEndSession($booking);
+        $booking->refresh();
+
         $lastId = (int) $request->query('last_id', 0);
         $newMessages = [];
 

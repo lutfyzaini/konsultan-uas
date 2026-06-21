@@ -244,6 +244,32 @@
                     </div>
                 </a>
 
+                {{-- Card 7: Pengaturan Platform --}}
+                <a href="{{ route('admin.settings.index') }}" class="group border border-slate-100 bg-slate-50 hover:bg-cyan-50/50 hover:border-cyan-200 p-6 rounded-2xl transition duration-300 flex items-start gap-4">
+                    <div class="w-12 h-12 bg-cyan-100 rounded-xl flex items-center justify-center text-cyan-900 text-xl font-semibold flex-shrink-0 group-hover:scale-105 transition duration-300">
+                        ⚙️
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-slate-900 group-hover:text-cyan-900 transition">Pengaturan Platform</h3>
+                        <p class="text-slate-500 text-xs mt-1 leading-relaxed">
+                            Konfigurasi tarif platform, bonus discount badge, dan limit waktu.
+                        </p>
+                    </div>
+                </a>
+
+                {{-- Card 8: Permintaan Pencairan --}}
+                <a href="{{ route('admin.withdrawals.index') }}" class="group border border-slate-100 bg-slate-50 hover:bg-rose-50/50 hover:border-rose-200 p-6 rounded-2xl transition duration-300 flex items-start gap-4">
+                    <div class="w-12 h-12 bg-rose-100 rounded-xl flex items-center justify-center text-rose-900 text-xl font-semibold flex-shrink-0 group-hover:scale-105 transition duration-300">
+                        💸
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-slate-900 group-hover:text-rose-900 transition">Pencairan Saldo</h3>
+                        <p class="text-slate-500 text-xs mt-1 leading-relaxed">
+                            Proses permintaan transfer manual dana pendapatan pakar.
+                        </p>
+                    </div>
+                </a>
+
             </div>
         </div>
 

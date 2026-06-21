@@ -170,7 +170,7 @@ class InstantConsultationController extends Controller
     // ──────────────────────────────────────────────
     public function result(int $id)
     {
-        $booking = Booking::with(['expertProfile.user.profile', 'expertProfile.category'])
+        $booking = Booking::with(['expertProfile.user.profile', 'expertProfile.category', 'review'])
             ->where('client_id', auth()->id())
             ->findOrFail($id);
 
@@ -199,6 +199,9 @@ class InstantConsultationController extends Controller
         $booking = Booking::with('consultation')
             ->where('client_id', auth()->id())
             ->findOrFail($id);
+
+        $this->bookingService->checkAndAutoEndSession($booking);
+        $booking->refresh();
 
         // Ambil pesan baru sejak last_id terakhir yang diterima client
         $lastId   = (int) $request->query('last_id', 0);
