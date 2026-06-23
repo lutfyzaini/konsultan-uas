@@ -8,19 +8,10 @@ use Illuminate\Http\Request;
 
 class SlotApiController extends Controller
 {
+    // GET /api/slots
     public function index()
     {
-        $expert = auth()->user()->expertProfile;
-
-        if (!$expert) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Profil Expert tidak ditemukan.'
-            ], 404);
-        }
-
-        $slots = Availability::where('expert_profile_id', $expert->id)
-            ->orderBy('day_of_week')
+        $slots = Availability::orderBy('day_of_week')
             ->orderBy('start_time')
             ->get();
 
@@ -30,6 +21,7 @@ class SlotApiController extends Controller
         ]);
     }
 
+    // POST /api/slots
     public function store(Request $request)
     {
         $request->validate([
@@ -39,11 +31,15 @@ class SlotApiController extends Controller
             'end_time'          => 'required|date_format:H:i|after:start_time',
         ]);
 
+        $day = $request->day_of_week;
+        $start = $request->start_time;
+        $end = $request->end_time;
+
         $overlap = Availability::where('expert_profile_id', $request->expert_profile_id)
-            ->where('day_of_week', $request->day_of_week)
-            ->where(function ($query) use ($request) {
-                $query->where('start_time', '<', $request->end_time)
-                    ->where('end_time', '>', $request->start_time);
+            ->where('day_of_week', $day)
+            ->where(function ($query) use ($start, $end) {
+                $query->where('start_time', '<', $end)
+                      ->where('end_time', '>', $start);
             })
             ->exists();
 
@@ -56,9 +52,9 @@ class SlotApiController extends Controller
 
         $slot = Availability::create([
             'expert_profile_id' => $request->expert_profile_id,
-            'day_of_week'       => $request->day_of_week,
-            'start_time'        => $request->start_time,
-            'end_time'          => $request->end_time,
+            'day_of_week'       => $day,
+            'start_time'        => $start,
+            'end_time'          => $end,
             'status'            => 'available',
             'is_active'         => true,
         ]);
@@ -66,27 +62,19 @@ class SlotApiController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Slot berhasil ditambahkan.',
-            'data'    => $slot
+            'data' => $slot
         ], 201);
     }
+
+    // DELETE /api/slots/{id}
     public function destroy($id)
     {
-        $expert = auth()->user()->expertProfile;
-
-        if (!$expert) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Profil Expert tidak ditemukan.'
-            ], 404);
-        }
-
-        $slot = Availability::where('expert_profile_id', $expert->id)
-            ->findOrFail($id);
+        $slot = Availability::findOrFail($id);
 
         if ($slot->status !== 'available') {
             return response()->json([
                 'success' => false,
-                'message' => 'Slot yang sudah dipesan tidak dapat dihapus.'
+                'message' => 'Slot yang sudah dikunci atau dipesan tidak dapat dihapus.'
             ], 422);
         }
 
