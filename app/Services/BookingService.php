@@ -183,6 +183,13 @@ class BookingService
             throw new \Exception('Sesi tidak dapat dimulai — status booking bukan confirmed.');
         }
 
+        $hasOngoing = Booking::where('expert_profile_id', $booking->expert_profile_id)
+            ->where('status', 'ongoing')
+            ->exists();
+        if ($hasOngoing) {
+            throw new \Exception('Pakar sudah memiliki sesi konsultasi yang sedang berjalan.');
+        }
+
         DB::transaction(function () use ($booking) {
             $booking->update([
                 'status'             => 'ongoing',
@@ -325,6 +332,13 @@ class BookingService
                 throw new \Exception('Expert ini belum terverifikasi.');
             }
 
+            $hasOngoing = Booking::where('expert_profile_id', $expert->id)
+                ->where('status', 'ongoing')
+                ->exists();
+            if ($hasOngoing) {
+                throw new \Exception('Pakar sedang dalam sesi konsultasi lain.');
+            }
+
             // cek client tidak punya instant booking lain yang masih aktif
             $activeInstant = Booking::where('client_id', $clientId)
                 ->where('booking_type', 'instant')
@@ -360,6 +374,13 @@ class BookingService
     // ----------------------------------------------------------------
     public function startInstantSession(Booking $booking): void
     {
+        $hasOngoing = Booking::where('expert_profile_id', $booking->expert_profile_id)
+            ->where('status', 'ongoing')
+            ->exists();
+        if ($hasOngoing) {
+            throw new \Exception('Pakar sudah memiliki sesi konsultasi yang sedang berjalan.');
+        }
+
         DB::transaction(function () use ($booking) {
             $booking->update([
                 'status'               => 'ongoing',

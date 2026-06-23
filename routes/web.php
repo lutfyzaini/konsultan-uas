@@ -5,6 +5,7 @@ use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Client\BookingController;
 use App\Http\Controllers\Client\ExpertController;
 use App\Http\Controllers\Client\InstantConsultationController;
+use App\Http\Controllers\Client\TopupController;
 use App\Http\Controllers\HomeController;
 
 use Illuminate\Support\Facades\Route;
@@ -31,6 +32,15 @@ Route::get('/experts/{id}', [ExpertController::class, 'show'])->name('experts.sh
 // ── CLIENT ROUTES ────────────────────────────────────────────────
 Route::middleware(['auth', 'role:client'])->prefix('client')->name('client.')->group(function () {
     Route::get('/dashboard', fn() => view('client.dashboard'))->name('dashboard');
+
+    // ── TOP-UP FLOW ──
+    Route::get('/topup',                 [TopupController::class, 'index'])->name('topup.index');
+    // POST request to submit top-up request, redirects to payment info page
+    Route::post('/topup',                [TopupController::class, 'store'])->name('topup.store');
+    // GET payment info page
+    Route::get('/topup/payment',         [TopupController::class, 'payment'])->name('topup.payment');
+    // POST request to actually process payment (simulated)
+    Route::post('/topup/pay',            [TopupController::class, 'pay'])->name('topup.pay');
 
     // ── BOOKING FLOW ──
     Route::get('/booking',                 [BookingController::class, 'index'])->name('booking.index');

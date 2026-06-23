@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Client;
 use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\ExpertProfile;
+use App\Models\Booking;
 use Illuminate\Http\Request;
 
 class ExpertController extends Controller
@@ -76,7 +77,16 @@ class ExpertController extends Controller
         $slots = $expert->availabilities()
             ->where('status', 'available')
             ->where('is_active', true)
-            ->orderByRaw("FIELD(day_of_week,'Senin','Selasa','Rabu','Kamis','Jumat','Sabtu','Minggu')")
+            ->orderByRaw("CASE day_of_week
+                WHEN 'Senin' THEN 1
+                WHEN 'Selasa' THEN 2
+                WHEN 'Rabu' THEN 3
+                WHEN 'Kamis' THEN 4
+                WHEN 'Jumat' THEN 5
+                WHEN 'Sabtu' THEN 6
+                WHEN 'Minggu' THEN 7
+                ELSE 8
+            END")
             ->orderBy('start_time')
             ->get()
             ->groupBy('day_of_week');

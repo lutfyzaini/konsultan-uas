@@ -283,4 +283,69 @@ class CoreEnhancementsTest extends TestCase
         $this->assertNotNull($newWithdrawal->fresh()->receipt_path);
         Storage::disk('public')->assertExists($newWithdrawal->fresh()->receipt_path);
     }
+
+    public function test_expert_single_active_session_and_slots_hidden(): void
+    {
+        // Setup availability slots
+        $slot = Availability::create([
+            'expert_profile_id' => $this->expertProfile->id,
+            'day_of_week' => 'Senin',
+            'start_time' => '10:00',
+            'end_time' => '11:00',
+            'status' => 'available',
+            'is_active' => true,
+        ]);
+
+        // 1. Create a booking and set to ongoing (instant)
+        $booking1 = Booking::create([
+            'client_id' => $this->clientUser->id,
+            'expert_profile_id' => $this->expertProfile->id,
+            'booking_date' => now()->toDateString(),
+            'start_time' => '10:00',
+            'end_time' => '11:00',
+            'status' => 'ongoing',
+            'booking_type' => 'instant',
+            'total_price' => 100000,
+        ]);
+
+        // 2. Verify availability slots are NOT hidden (can still be booked)
+        $response = $this->actingAs($this->clientUser)->get(route('experts.show', $this->expertProfile->id));
+        $response->assertStatus(200);
+        $this->assertNotEmpty($response->viewData('slots'));
+
+        // 3. Try to start a scheduled session (should fail since expert is already in a session)
+        $booking2 = Booking::create([
+            'client_id' => $this->clientUser->id,
+            'expert_profile_id' => $this->expertProfile->id,
+            'booking_date' => now()->toDateString(),
+            'start_time' => '11:00',
+            'end_time' => '12:00',
+            'status' => 'confirmed',
+            'total_price' => 100000,
+        ]);
+
+        $failed = false;
+        try {
+            $this->bookingService->startSession($booking2);
+        } catch (\Exception $e) {
+            $failed = true;
+            $this->assertStringContainsString('Pakar sudah memiliki sesi konsultasi yang sedang berjalan', $e->getMessage());
+        }
+        $this->assertTrue($failed, 'Expected startSession to fail when another session is ongoing');
+
+        // 4. Try to create an instant booking when another session is ongoing (should fail)
+        $failedInstant = false;
+        try {
+            $this->bookingService->createInstantBooking($this->expertProfile->id, $this->clientUser->id);
+        } catch (\Exception $e) {
+            $failedInstant = true;
+            $this->assertStringContainsString('Pakar sedang dalam sesi konsultasi lain', $e->getMessage());
+        }
+        $this->assertTrue($failedInstant, 'Expected createInstantBooking to fail when another session is ongoing');
+
+        // 5. Try to lock a scheduled slot when another instant session is ongoing (should succeed for future booking)
+        $lockedBooking = $this->bookingService->lockSlot($slot->id, $this->clientUser->id);
+        $this->assertNotNull($lockedBooking);
+        $this->assertEquals('pending_payment', $lockedBooking->status);
+    }
 }

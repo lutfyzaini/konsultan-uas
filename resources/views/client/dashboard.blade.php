@@ -14,11 +14,17 @@
 
     {{-- Quick Stats --}}
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
-            <p class="text-xs text-slate-400 uppercase tracking-wide font-medium mb-1">Saldo Wallet</p>
-            <p class="text-2xl font-bold text-blue-900">
-                Rp {{ number_format(auth()->user()->wallet->balance ?? 0, 0, ',', '.') }}
-            </p>
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 flex justify-between items-center">
+            <div>
+                <p class="text-xs text-slate-400 uppercase tracking-wide font-medium mb-1">Saldo Wallet</p>
+                <p class="text-2xl font-bold text-blue-900">
+                    Rp {{ number_format(auth()->user()->wallet->balance ?? 0, 0, ',', '.') }}
+                </p>
+            </div>
+            <a href="{{ route('client.topup.index') }}"
+               class="px-4 py-2 bg-blue-900 hover:bg-indigo-900 text-white text-xs font-bold rounded-xl transition">
+                Top Up
+            </a>
         </div>
         <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
             <p class="text-xs text-slate-400 uppercase tracking-wide font-medium mb-1">Total Sesi</p>
@@ -120,6 +126,61 @@
                             Detail
                         </a>
                     @endif
+                </div>
+            </div>
+            @endforeach
+        </div>
+        @endif
+    </div>
+
+    {{-- Riwayat Transaksi Dompet --}}
+    <div class="mt-8">
+        <h2 class="text-base font-semibold text-slate-800 mb-4">Riwayat Transaksi Wallet</h2>
+        @php
+            $walletTransactions = App\Models\WalletTransaction::whereHas('wallet', function($q) {
+                    $q->where('user_id', auth()->id());
+                })
+                ->latest()
+                ->take(5)
+                ->get();
+        @endphp
+
+        @if($walletTransactions->isEmpty())
+        <div class="bg-white rounded-2xl border border-slate-200 p-10 text-center">
+            <p class="text-slate-400 text-sm">Belum ada transaksi wallet.</p>
+        </div>
+        @else
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm divide-y divide-slate-100">
+            @foreach($walletTransactions as $tx)
+            <div class="flex items-center justify-between px-5 py-4 hover:bg-slate-50 transition">
+                <div class="flex items-center gap-3">
+                    <div @class([
+                        'w-9 h-9 rounded-lg flex items-center justify-center font-bold text-xs',
+                        'bg-teal-50 text-teal-700' => $tx->type === 'credit',
+                        'bg-red-50 text-red-600' => $tx->type === 'debit',
+                    ])>
+                        {{ $tx->type === 'credit' ? '+' : '-' }}
+                    </div>
+                    <div>
+                        <p class="text-sm font-medium text-slate-800">
+                            {{ $tx->description ?? ($tx->type === 'credit' ? 'Saldo Masuk' : 'Saldo Keluar') }}
+                        </p>
+                        <p class="text-xs text-slate-400">
+                            {{ $tx->created_at->format('d M Y, H:i') }} WIB
+                        </p>
+                    </div>
+                </div>
+                <div class="text-right">
+                    <p @class([
+                        'text-sm font-bold',
+                        'text-teal-600' => $tx->type === 'credit',
+                        'text-slate-800' => $tx->type === 'debit',
+                    ])>
+                        {{ $tx->type === 'credit' ? '+' : '-' }} Rp {{ number_format($tx->amount, 0, ',', '.') }}
+                    </p>
+                    <p class="text-[10px] text-slate-400 mt-0.5">
+                        Saldo Akhir: Rp {{ number_format($tx->balance_after, 0, ',', '.') }}
+                    </p>
                 </div>
             </div>
             @endforeach

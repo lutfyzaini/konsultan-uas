@@ -216,6 +216,11 @@ Dokumen ini berisi rangkuman arsitektur, teknologi, database, alur sistem, dan k
 - Sembunyikan tombol "Batalkan Pesanan" jika booking_type === 'instant'.
   Biarkan Cron Job Aturan 10 Menit (Skenario B) yang bekerja. Klien dipaksa menunggu maksimal 10 menit. Jika Pakar benar-benar tidak datang dalam 10 menit, sistem yang akan otomatis membatalkan dan me-refund uang Klien.
 
+
+### Penanganan Sesi Bersamaan & Tabrakan Jadwal
+- **Satu Sesi Aktif Per Expert**: Satu expert hanya bisa menjalankan 1 sesi konsultasi aktif (`ongoing`) dalam satu waktu. Jika ada sesi yang sedang berjalan, expert tidak bisa memulai sesi konsultasi terjadwal/instant lainnya, dan client tidak bisa mengajukan booking instant baru ke expert tersebut.
+- **Booking Jadwal Tetap Aktif**: Saat expert sedang dalam sesi konsultasi aktif (termasuk sesi instant), fitur booking jadwal masa depan tetap bisa digunakan (slot ketersediaan expert tidak disembunyikan dan tetap dapat dikunci/dipesan oleh client).
+
 ---
 
 ## IV. Kebijakan Bisnis & Keuangan

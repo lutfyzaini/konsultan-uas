@@ -105,7 +105,7 @@ class AuthController extends Controller
             // 3. buat wallet dengan saldo awal
             Wallet::create([
                 'user_id' => $user->id,
-                'balance' => $request->role === 'client' ? 100000 : 0, // client dapat saldo awal 100rb
+                'balance' => $request->role === 'client' ? 10000000 : 0, // client dapat saldo awal 100rb
             ]);
 
             // 4. kalau expert, buat profil expert kosong dulu
