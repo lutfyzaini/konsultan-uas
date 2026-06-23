@@ -302,4 +302,24 @@ class BookingController extends Controller
 
         return back()->with('success', 'Terima kasih atas ulasan Anda!');
     }
+
+    // ──────────────────────────────────────────────
+    // AKHIRI SESI MANUALLY BY CLIENT
+    // POST /client/booking/{id}/end
+    // ──────────────────────────────────────────────
+    public function endSession(int $id)
+    {
+        $booking = Booking::where('client_id', auth()->id())
+            ->where('status', 'ongoing')
+            ->findOrFail($id);
+
+        try {
+            $this->bookingService->endSession($booking);
+            return redirect()->route('client.booking.show', $booking->id)
+                ->with('success', 'Sesi konsultasi telah diakhiri. Silakan berikan ulasan Anda.');
+        } catch (\Exception $e) {
+            return back()->with('error', $e->getMessage());
+        }
+    }
 }
+

@@ -28,8 +28,8 @@
                 </div>
             </div>
 
-            {{-- Status & Countdown --}}
-            <div class="flex items-center gap-3">
+            {{-- Status & Countdown & End button --}}
+            <div class="flex items-center gap-4">
                 {{-- Indikator kehadiran expert --}}
                 <div id="expert-status" class="flex items-center gap-1.5 text-xs">
                     @if($booking->expert_joined)
@@ -50,6 +50,14 @@
                     </p>
                 </div>
                 @endif
+
+                {{-- Tombol Akhiri Konsultasi --}}
+                <form action="{{ route('client.instant.end', $booking->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin mengakhiri sesi konsultasi instan ini?')">
+                    @csrf
+                    <button type="submit" class="px-3.5 py-1.5 bg-red-600 hover:bg-red-700 active:scale-95 text-white text-xs font-semibold rounded-xl shadow-sm transition">
+                        Akhiri Konsultasi
+                    </button>
+                </form>
             </div>
         </div>
     </div>

@@ -237,10 +237,29 @@ class BookingService
     public function checkAndAutoEndSession(Booking $booking): void
     {
         if ($booking->status === 'ongoing' && $booking->session_started_at) {
-            $durationHours = (int) \App\Models\PlatformSetting::getValue('session_duration_hours', 1);
-            $limitTime = Carbon::parse($booking->session_started_at)->addHours($durationHours);
-            if (now()->isAfter($limitTime)) {
-                $this->endSession($booking);
+            if ($booking->booking_type === 'instant') {
+                $durationHours = (int) \App\Models\PlatformSetting::getValue('session_duration_hours', 1);
+                $limitTime = Carbon::parse($booking->session_started_at)->addHours($durationHours);
+                if (now()->isAfter($limitTime)) {
+                    $this->endSession($booking);
+                }
+            } else {
+                // Scheduled booking: Selesai tepat pada end_time yang tertulis di booking/availability
+                $sessionDate = $booking->booking_date ? $booking->booking_date->format('Y-m-d') : now()->toDateString();
+                $endTimeStr = $booking->end_time ?: ($booking->availability ? $booking->availability->end_time : null);
+                
+                if ($endTimeStr) {
+                    $limitTime = Carbon::parse($sessionDate . ' ' . $endTimeStr);
+                    
+                    // Antisipasi jika jam selesai melewati tengah malam (crossing midnight)
+                    if ($booking->start_time && $endTimeStr < $booking->start_time) {
+                        $limitTime->addDay();
+                    }
+                    
+                    if (now()->isAfter($limitTime)) {
+                        $this->endSession($booking);
+                    }
+                }
             }
         }
     }

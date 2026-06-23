@@ -48,6 +48,7 @@ Route::middleware(['auth', 'role:client'])->prefix('client')->name('client.')->g
     Route::get('/booking/{id}/payment',    [BookingController::class, 'payment'])->name('booking.payment');
     Route::post('/booking/{id}/pay',       [BookingController::class, 'pay'])->name('booking.pay');
     Route::post('/booking/{id}/cancel',    [BookingController::class, 'cancel'])->name('booking.cancel');
+    Route::post('/booking/{id}/end',       [BookingController::class, 'endSession'])->name('booking.end');
     Route::get('/booking/{id}/room',       [BookingController::class, 'room'])->name('booking.room');
     Route::post('/booking/{id}/message',   [BookingController::class, 'sendMessage'])->name('booking.message');
     Route::get('/booking/{id}/status',     [BookingController::class, 'checkStatus'])->name('booking.status');
@@ -60,8 +61,10 @@ Route::middleware(['auth', 'role:client'])->prefix('client')->name('client.')->g
     Route::post('/instant/{id}/pay',        [InstantConsultationController::class, 'pay'])->name('instant.pay');
     Route::get('/instant/{id}/room',        [InstantConsultationController::class, 'room'])->name('instant.room');
     Route::post('/instant/{id}/message',    [InstantConsultationController::class, 'sendMessage'])->name('instant.message');
+    Route::post('/instant/{id}/end',        [InstantConsultationController::class, 'endSession'])->name('instant.end');
     Route::get('/instant/{id}/result',      [InstantConsultationController::class, 'result'])->name('instant.result');
     Route::get('/instant/{id}/status',      [InstantConsultationController::class, 'checkStatus'])->name('instant.status');
+
 });
 
 // ── EXPERT ROUTES ────────────────────────────────────────────────

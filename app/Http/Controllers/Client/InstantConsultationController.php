@@ -234,4 +234,23 @@ class InstantConsultationController extends Controller
             'new_messages'        => $newMessages,
         ]);
     }
+
+    // ──────────────────────────────────────────────
+    // AKHIRI SESI MANUALLY BY CLIENT (INSTANT)
+    // POST /client/instant/{id}/end
+    // ──────────────────────────────────────────────
+    public function endSession(int $id)
+    {
+        $booking = Booking::where('client_id', auth()->id())
+            ->where('status', 'ongoing')
+            ->findOrFail($id);
+
+        try {
+            $this->bookingService->endSession($booking);
+            return redirect()->route('client.instant.result', $booking->id)
+                ->with('success', 'Sesi konsultasi instan telah diakhiri. Silakan berikan ulasan Anda.');
+        } catch (\Exception $e) {
+            return back()->with('error', $e->getMessage());
+        }
+    }
 }
