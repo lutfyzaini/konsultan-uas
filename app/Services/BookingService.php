@@ -269,35 +269,37 @@ class BookingService
     // ----------------------------------------------------------------
     public function releaseExpiredSlots(): int
     {
-        $lockMinutes = (int) \App\Models\PlatformSetting::getValue('auto_cancel_minutes', 15);
-        $expiredTime = now()->subMinutes($lockMinutes);
-        $count       = 0;
-
-        // ambil semua slot yang sudah locked > 15 menit
-        $expiredSlots = Availability::where('status', 'locked')
-            ->where('locked_at', '<=', $expiredTime)
+        // 1. Ambil semua booking yang statusnya pending_payment dan waktu saat ini sudah melewati payment_deadline
+        $expiredBookings = Booking::with(['availability', 'payment'])
+            ->where('status', 'pending_payment')
+            ->whereNotNull('payment_deadline')
+            ->where('payment_deadline', '<', now())
             ->get();
 
-        foreach ($expiredSlots as $slot) {
-            DB::transaction(function () use ($slot, &$count) {
+        $count = 0;
 
-                // rilis slot
-                $slot->update([
-                    'status'    => 'available',
-                    'locked_at' => null,
-                    'locked_by' => null,
+        foreach ($expiredBookings as $booking) {
+            DB::transaction(function () use ($booking, &$count) {
+                // 2. Ubah status booking menjadi dibatalkan
+                $booking->update([
+                    'status' => 'cancelled',
+                    'cancel_reason' => 'Batas waktu pembayaran telah habis (otomatis dibatalkan sistem).'
                 ]);
 
-                // batalkan booking yang terkait
-                Booking::where('availability_id', $slot->id)
-                    ->where('status', 'pending_payment')
-                    ->update(['status' => 'cancelled']);
+                // 3. Ubah status ketersediaan (Availability) kembali menjadi 'available'
+                if ($booking->availability) {
+                    $booking->availability->update([
+                        'status'    => 'available',
+                        'locked_at' => null,
+                        'locked_by' => null,
+                    ]);
+                }
 
                 $count++;
             });
         }
 
-        return $count; // jumlah slot yang dirilis
+        return $count;
     }
 
     // ----------------------------------------------------------------
