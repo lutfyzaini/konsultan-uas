@@ -8,14 +8,20 @@ use Illuminate\Http\Request;
 
 class SlotApiController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $expert = auth()->user()->expertProfile;
+        $expertId = $request->query('expert_profile_id');
+
+        if ($expertId) {
+            $expert = \App\Models\ExpertProfile::find($expertId);
+        } else {
+            $expert = auth()->user()?->expertProfile;
+        }
 
         if (!$expert) {
             return response()->json([
                 'success' => false,
-                'message' => 'Profil Expert tidak ditemukan.'
+                'message' => 'Profil Expert tidak ditemukan. Silakan masukkan parameter query expert_profile_id.'
             ], 404);
         }
 
@@ -71,17 +77,21 @@ class SlotApiController extends Controller
     }
     public function destroy($id)
     {
-        $expert = auth()->user()->expertProfile;
+        $expert = auth()->user()?->expertProfile;
 
         if (!$expert) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Profil Expert tidak ditemukan.'
-            ], 404);
+            $slot = Availability::find($id);
+            $expert = $slot?->expertProfile;
+        } else {
+            $slot = Availability::where('expert_profile_id', $expert->id)->find($id);
         }
 
-        $slot = Availability::where('expert_profile_id', $expert->id)
-            ->findOrFail($id);
+        if (!$expert || !$slot) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Profil Expert atau Slot tidak ditemukan.'
+            ], 404);
+        }
 
         if ($slot->status !== 'available') {
             return response()->json([
