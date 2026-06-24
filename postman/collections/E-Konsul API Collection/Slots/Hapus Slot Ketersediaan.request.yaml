@@ -1,0 +1,6 @@
+$kind: http-request
+url: "{{base_url}}/api/slots/1"
+method: DELETE
+headers:
+  Accept: application/json
+order: 3000

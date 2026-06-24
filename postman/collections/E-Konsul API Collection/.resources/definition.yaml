@@ -1,0 +1,4 @@
+$kind: collection
+description: Koleksi API E-Konsul untuk pengujian endpoint kategori, pakar, booking, ketersediaan slot, dan ruang konsultasi chat.
+variables:
+  base_url: http://127.0.0.1:8000

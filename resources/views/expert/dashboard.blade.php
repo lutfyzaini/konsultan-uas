@@ -117,6 +117,9 @@
                         <a href="{{ route('expert.profile.edit') }}" class="flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-all">
                             <span>⚙️</span> Edit Profil Pakar
                         </a>
+                        <a href="{{ route('expert.reviews.index') }}" class="flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-all">
+                            <span>⭐</span> Ulasan Klien
+                        </a>
                     </nav>
                 </div>
             </div>

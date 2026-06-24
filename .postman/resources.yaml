@@ -2,6 +2,10 @@
 workspace:
   id: ed9dfd4c-dc7d-4a62-88ef-de7a6ddbe294
 
+cloudResources:
+  collections:
+    ..\postman\collections\E-Konsul API Collection: 69429265-86f2-40c4-b31d-a3d349445850
+
 # All resources in the `postman/` folder are automatically registered in Local View.
 # Point to additional files outside the `postman/` folder to register them individually. Example:
 #localResources:

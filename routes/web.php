@@ -88,6 +88,8 @@ Route::middleware(['auth', 'role:expert'])->prefix('expert')->name('expert.')->g
     Route::post('/consultation/{id}/message', [App\Http\Controllers\Expert\ConsultationController::class, 'sendMessage'])->name('consultation.message');
     Route::get('/consultation/{id}/status', [App\Http\Controllers\Expert\ConsultationController::class, 'checkStatus'])->name('consultation.status');
     Route::post('/consultation/{id}/end', [App\Http\Controllers\Expert\ConsultationController::class, 'endSession'])->name('consultation.end');
+
+    Route::get('/reviews', [App\Http\Controllers\Expert\ReviewController::class, 'index'])->name('reviews.index');
 });
 
 // ── ADMIN ROUTES ─────────────────────────────────────────────────

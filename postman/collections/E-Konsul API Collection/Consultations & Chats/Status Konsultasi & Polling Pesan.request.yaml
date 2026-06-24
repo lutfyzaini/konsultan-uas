@@ -1,0 +1,8 @@
+$kind: http-request
+url: "{{base_url}}/api/consultations/1/status?last_id=0"
+method: GET
+headers:
+  Accept: application/json
+queryParams:
+  last_id: "0"
+order: 3000

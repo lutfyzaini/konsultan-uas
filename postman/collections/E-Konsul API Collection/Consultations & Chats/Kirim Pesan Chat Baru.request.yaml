@@ -1,0 +1,14 @@
+$kind: http-request
+url: "{{base_url}}/api/consultations/1/message"
+method: POST
+headers:
+  Accept: application/json
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+        "sender_id": 1,
+        "message": "Halo, ada yang bisa saya bantu?"
+    }
+order: 2000

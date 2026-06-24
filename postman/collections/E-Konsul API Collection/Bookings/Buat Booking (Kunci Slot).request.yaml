@@ -1,0 +1,14 @@
+$kind: http-request
+url: "{{base_url}}/api/bookings"
+method: POST
+headers:
+  Accept: application/json
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+        "availability_id": 1,
+        "client_id": 1
+    }
+order: 2000

@@ -1,0 +1,6 @@
+$kind: http-request
+url: "{{base_url}}/api/consultations/1"
+method: GET
+headers:
+  Accept: application/json
+order: 1000

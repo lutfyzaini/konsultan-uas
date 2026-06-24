@@ -1,0 +1,16 @@
+$kind: http-request
+url: "{{base_url}}/api/slots"
+method: POST
+headers:
+  Accept: application/json
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+        "expert_profile_id": 1,
+        "day_of_week": "Senin",
+        "start_time": "14:00",
+        "end_time": "15:00"
+    }
+order: 2000
