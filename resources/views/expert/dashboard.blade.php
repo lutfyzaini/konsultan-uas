@@ -128,7 +128,7 @@
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <!-- Balance -->
                     <div class="bg-gradient-to-br from-blue-900 to-indigo-900 rounded-3xl p-6 text-white shadow-md relative overflow-hidden">
-                        <div class="absolute -right-8 -bottom-8 text-white/5 text-9xl font-bold">Rp</div>
+                        <div class="absolute -right-8 -bottom-8 text-white/5 text-9xl font-bold pointer-events-none">Rp</div>
                         <p class="text-xs text-white/70 uppercase tracking-wider font-semibold">Saldo Wallet</p>
                         <h3 class="text-2xl font-bold mt-2">Rp {{ number_format($wallet->balance, 0, ',', '.') }}</h3>
                         <div class="mt-4 flex justify-between items-center border-t border-white/10 pt-4">

@@ -21,3 +21,6 @@ Schedule::command('instant:check-attendance')->everyMinute();
 
 // Setiap menit: cek no-show untuk instant consultation (10 menit deadline)
 Schedule::command('consultation:process-no-shows')->everyMinute();
+
+// Setiap 5 menit: kirim email pengingat sesi yang akan dimulai dalam 30 menit
+Schedule::command('bookings:send-reminders')->everyFiveMinutes();

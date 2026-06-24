@@ -53,10 +53,10 @@ class ConsultationController extends Controller
         $this->bookingService->markAttendance($booking, 'expert');
         $booking->refresh();
 
-        // Jika sudah selesai atau dibatalkan, kembalikan ke dasbor dengan info
-        if (in_array($booking->status, ['cancelled', 'completed', 'pending_settlement'])) {
+        // Jika dibatalkan, kembalikan ke dasbor dengan info
+        if ($booking->status === 'cancelled') {
             return redirect()->route('expert.dashboard')
-                ->with('success', 'Sesi konsultasi ini telah berakhir atau dibatalkan.');
+                ->with('error', 'Sesi konsultasi ini telah dibatalkan.');
         }
 
         $secondsRemaining = $booking->attendance_deadline
@@ -147,7 +147,7 @@ class ConsultationController extends Controller
             'seconds_remaining'  => $booking->attendance_deadline
                 ? max(0, (int) now()->diffInSeconds($booking->attendance_deadline, false))
                 : null,
-            'redirect_to_result' => in_array($booking->status, ['cancelled', 'completed', 'pending_settlement']),
+            'redirect_to_result' => $booking->status === 'cancelled',
             'new_messages'       => $newMessages,
         ]);
     }

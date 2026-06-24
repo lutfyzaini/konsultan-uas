@@ -70,15 +70,18 @@
             </div>
         </div>
 
-        {{-- Tombol masuk ruang chat --}}
+        {{-- Tombol masuk ruang chat & PDF --}}
         @php
             $sessionStart = \Carbon\Carbon::parse($booking->booking_date->format('Y-m-d') . ' ' . $booking->start_time);
             $isTimeYet = now()->greaterThanOrEqualTo($sessionStart);
+            $roomRoute = $booking->booking_type === 'instant' 
+                ? route('client.instant.room', $booking->id) 
+                : route('client.booking.room', $booking->id);
         @endphp
-        <div class="px-6 pb-6">
+        <div class="px-6 pb-6 space-y-3">
             @if(in_array($booking->status, ['confirmed', 'ongoing']))
-                @if($isTimeYet)
-                    <a href="{{ route('client.booking.room', $booking->id) }}"
+                @if($isTimeYet || $booking->booking_type === 'instant')
+                    <a href="{{ $roomRoute }}"
                        class="block text-center w-full py-3 bg-blue-900 hover:bg-indigo-900 text-white font-semibold rounded-xl text-sm shadow-sm transition-all">
                         Masuk Ruang Konsultasi
                     </a>
@@ -89,6 +92,17 @@
                         Ruang Chat Belum Dibuka (Tersedia pukul {{ $sessionStart->format('H:i') }} WIB)
                     </button>
                 @endif
+            @elseif(in_array($booking->status, ['completed', 'pending_settlement']))
+                <div class="grid grid-cols-2 gap-3">
+                    <a href="{{ $roomRoute }}"
+                       class="block text-center w-full py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl text-sm transition-all">
+                        Lihat Riwayat Chat
+                    </a>
+                    <a href="{{ route('client.booking.pdf', $booking->id) }}"
+                       class="block text-center w-full py-3 bg-amber-600 hover:bg-amber-700 text-white font-semibold rounded-xl text-sm shadow-sm transition-all">
+                        Download Resume (PDF)
+                    </a>
+                </div>
             @endif
         </div>
 

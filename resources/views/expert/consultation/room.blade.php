@@ -51,12 +51,14 @@
                 @endif
 
                 {{-- Tombol Akhiri Sesi --}}
-                <form action="{{ route('expert.consultation.end', $booking->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin mengakhiri sesi konsultasi ini?')">
+                @if(!in_array($booking->status, ['completed', 'pending_settlement']))
+                <form id="end-session-form" action="{{ route('expert.consultation.end', $booking->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin mengakhiri sesi konsultasi ini?')">
                     @csrf
                     <button type="submit" class="px-3.5 py-1.5 bg-red-600 hover:bg-red-700 active:scale-95 text-white text-xs font-semibold rounded-xl shadow-sm transition">
                         Akhiri Sesi
                     </button>
                 </form>
+                @endif
             </div>
         </div>
     </div>
@@ -117,24 +119,49 @@
             @endforeach
         </div>
 
-        {{-- INPUT PESAN --}}
-        <div class="flex gap-2 items-end flex-shrink-0">
-            <div class="flex-1 bg-white border border-slate-200 rounded-2xl shadow-sm flex items-end gap-2 px-4 py-2.5">
-                <textarea id="msg-input" rows="1"
-                          placeholder="Tulis pesan respon konsultasi..."
-                          onkeydown="handleEnter(event)"
-                          class="flex-1 resize-none text-sm focus:outline-none text-slate-800 placeholder-slate-400 max-h-32"
-                          style="min-height: 24px;"></textarea>
+        {{-- INPUT PESAN ATAU BANNER READ-ONLY --}}
+        @if(in_array($booking->status, ['completed', 'pending_settlement']))
+            <div class="p-4 bg-slate-100 border border-slate-200 rounded-2xl text-center flex-shrink-0 flex items-center justify-between gap-4">
+                <div class="text-left">
+                    <p class="text-sm font-semibold text-slate-700">Sesi Konsultasi Telah Selesai</p>
+                    <p class="text-xs text-slate-500">Ruang chat ini sekarang dalam mode Baca-Saja (Read-Only).</p>
+                </div>
+                <div class="flex gap-2">
+                    <a href="{{ route('expert.dashboard') }}" class="px-4 py-2 bg-blue-900 hover:bg-indigo-900 text-white text-xs font-semibold rounded-xl transition shadow-sm">
+                        Kembali ke Dashboard
+                    </a>
+                </div>
             </div>
-            <button onclick="sendMessage()"
-                    id="send-btn"
-                    class="flex-shrink-0 w-11 h-11 bg-blue-900 hover:bg-indigo-900 active:scale-95 text-white rounded-xl shadow-sm transition flex items-center justify-center">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                          d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
-                </svg>
-            </button>
-        </div>
+        @else
+            <div id="input-container" class="flex gap-2 items-end flex-shrink-0">
+                <div class="flex-1 bg-white border border-slate-200 rounded-2xl shadow-sm flex items-end gap-2 px-4 py-2.5">
+                    <textarea id="msg-input" rows="1"
+                              placeholder="Tulis pesan respon konsultasi..."
+                              onkeydown="handleEnter(event)"
+                              class="flex-1 resize-none text-sm focus:outline-none text-slate-800 placeholder-slate-400 max-h-32"
+                              style="min-height: 24px;"></textarea>
+                </div>
+                <button onclick="sendMessage()"
+                        id="send-btn"
+                        class="flex-shrink-0 w-11 h-11 bg-blue-900 hover:bg-indigo-900 active:scale-95 text-white rounded-xl shadow-sm transition flex items-center justify-center">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
+                    </svg>
+                </button>
+            </div>
+            <div id="readonly-banner" class="hidden p-4 bg-slate-100 border border-slate-200 rounded-2xl text-center flex-shrink-0 flex items-center justify-between gap-4">
+                <div class="text-left">
+                    <p class="text-sm font-semibold text-slate-700">Sesi Konsultasi Telah Selesai</p>
+                    <p class="text-xs text-slate-500">Ruang chat ini sekarang dalam mode Baca-Saja (Read-Only).</p>
+                </div>
+                <div class="flex gap-2">
+                    <a href="{{ route('expert.dashboard') }}" class="px-4 py-2 bg-blue-900 hover:bg-indigo-900 text-white text-xs font-semibold rounded-xl transition shadow-sm">
+                        Kembali ke Dashboard
+                    </a>
+                </div>
+            </div>
+        @endif
 
     </div>
 </div>
@@ -250,6 +277,41 @@ function handleEnter(e) {
 }
 
 // Polling status dan pesan baru
+// Web Audio API sound alert chime
+function playNotificationSound() {
+    try {
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        
+        const osc1 = audioCtx.createOscillator();
+        const osc2 = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        
+        osc1.type = 'sine';
+        osc1.frequency.setValueAtTime(523.25, audioCtx.currentTime); // C5
+        osc1.frequency.exponentialRampToValueAtTime(659.25, audioCtx.currentTime + 0.1); // E5
+        
+        osc2.type = 'sine';
+        osc2.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.1); // E5
+        osc2.frequency.exponentialRampToValueAtTime(783.99, audioCtx.currentTime + 0.2); // G5
+        
+        gainNode.gain.setValueAtTime(0.15, audioCtx.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.35);
+        
+        osc1.connect(gainNode);
+        osc2.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        
+        osc1.start();
+        osc2.start(audioCtx.currentTime + 0.08);
+        
+        osc1.stop(audioCtx.currentTime + 0.35);
+        osc2.stop(audioCtx.currentTime + 0.35);
+    } catch (e) {
+        console.warn('AudioContext failed:', e);
+    }
+}
+
+// Polling status dan pesan baru
 async function pollStatus() {
     try {
         const res = await fetch(`${STATUS_URL}?last_id=${lastMessageId}`, {
@@ -262,6 +324,16 @@ async function pollStatus() {
         if (data.redirect_to_result) {
             window.location.href = REDIRECT_URL;
             return;
+        }
+
+        // Handle dynamic transition to Read-Only mode
+        if (data.status === 'completed' || data.status === 'pending_settlement') {
+            const inputContainer = document.getElementById('input-container');
+            const readonlyBanner = document.getElementById('readonly-banner');
+            const endSessionForm = document.getElementById('end-session-form');
+            if (inputContainer) inputContainer.classList.add('hidden');
+            if (readonlyBanner) readonlyBanner.classList.remove('hidden');
+            if (endSessionForm) endSessionForm.classList.add('hidden');
         }
 
         if (data.client_joined) {
@@ -282,6 +354,11 @@ async function pollStatus() {
         }
 
         if (data.new_messages && data.new_messages.length > 0) {
+            // Play notification sound only if there are new incoming messages from client
+            const hasIncoming = data.new_messages.some(msg => msg.sender_id !== AUTH_ID);
+            if (hasIncoming) {
+                playNotificationSound();
+            }
             data.new_messages.forEach(msg => appendMessage(msg));
         }
 

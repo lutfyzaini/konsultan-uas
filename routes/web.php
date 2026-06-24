@@ -53,6 +53,7 @@ Route::middleware(['auth', 'role:client'])->prefix('client')->name('client.')->g
     Route::post('/booking/{id}/message',   [BookingController::class, 'sendMessage'])->name('booking.message');
     Route::get('/booking/{id}/status',     [BookingController::class, 'checkStatus'])->name('booking.status');
     Route::get('/booking/{id}',            [BookingController::class, 'show'])->name('booking.show');
+    Route::get('/booking/{id}/pdf',        [BookingController::class, 'downloadPdf'])->name('booking.pdf');
     Route::post('/booking/{id}/review',    [BookingController::class, 'storeReview'])->name('booking.review');
 
     // ── INSTANT CONSULTATION FLOW ──
@@ -103,8 +104,11 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::get('/verifications',[VerificationController::class, 'index'])->name('verifications.index');
     Route::post('/verifications/{expert}/approve',[VerificationController::class, 'approve'])->name('verifications.approve');
     Route::post('/verifications/{expert}/reject',[VerificationController::class, 'reject'])->name('verifications.reject');
+    Route::get('/verifications/{expert}/approve', fn() => redirect()->route('admin.verifications.index'));
+    Route::get('/verifications/{expert}/reject', fn() => redirect()->route('admin.verifications.index'));
     Route::get('/users', [UserManagementController::class, 'index'])->name('users.index');
     Route::post('/users/{user}/toggle-status',[UserManagementController::class, 'toggleStatus'])->name('users.toggle');
+    Route::get('/users/{user}/toggle-status', fn() => redirect()->route('admin.users.index'));
     Route::get('/payments',[PaymentController::class,'index'])->name('payments.index');
     Route::get('/bookings',[AdminBookingController::class,'index'])->name('bookings.index');
     Route::get('/settings', [PlatformSettingsController::class, 'index'])->name('settings.index');
@@ -112,5 +116,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::get('/withdrawals', [\App\Http\Controllers\Admin\WithdrawalController::class, 'index'])->name('withdrawals.index');
     Route::post('/withdrawals/{id}/approve', [\App\Http\Controllers\Admin\WithdrawalController::class, 'approve'])->name('withdrawals.approve');
     Route::post('/withdrawals/{id}/reject', [\App\Http\Controllers\Admin\WithdrawalController::class, 'reject'])->name('withdrawals.reject');
+    Route::get('/withdrawals/{id}/approve', fn() => redirect()->route('admin.withdrawals.index'));
+    Route::get('/withdrawals/{id}/reject', fn() => redirect()->route('admin.withdrawals.index'));
     // nanti ditambah: verification, user management, finance
 });

@@ -188,6 +188,18 @@
     @endif
 
     <div class="space-y-3">
+        <div class="grid grid-cols-2 gap-3">
+            <a href="{{ route('client.instant.room', $booking->id) }}"
+               class="flex items-center justify-center gap-2 w-full py-3.5 bg-slate-100 hover:bg-slate-200 active:scale-[0.98]
+                      text-slate-700 font-semibold rounded-xl border border-slate-200 shadow-sm transition text-sm">
+                Lihat Riwayat Chat
+            </a>
+            <a href="{{ route('client.booking.pdf', $booking->id) }}"
+               class="flex items-center justify-center gap-2 w-full py-3.5 bg-amber-600 hover:bg-amber-700 active:scale-[0.98]
+                      text-white font-semibold rounded-xl shadow-sm transition text-sm">
+                Unduh Resume (PDF)
+            </a>
+        </div>
         {{-- Kembali ke katalog --}}
         <a href="{{ route('experts.index') }}"
            class="flex items-center justify-center gap-2 w-full py-3.5 bg-blue-900 hover:bg-blue-800 active:scale-[0.98]

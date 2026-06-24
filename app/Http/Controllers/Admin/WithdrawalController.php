@@ -46,7 +46,8 @@ class WithdrawalController extends Controller
 
             return redirect()->route('admin.withdrawals.index')->with('success', 'Permintaan penarikan berhasil disetujui.');
 
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('Gagal menyetujui penarikan: ' . $e->getMessage(), ['exception' => $e]);
             return back()->with('error', $e->getMessage());
         }
     }
@@ -94,7 +95,8 @@ class WithdrawalController extends Controller
 
             return redirect()->route('admin.withdrawals.index')->with('success', 'Permintaan penarikan ditolak dan saldo dikembalikan.');
 
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('Gagal menolak penarikan: ' . $e->getMessage(), ['exception' => $e]);
             return back()->with('error', $e->getMessage());
         }
     }

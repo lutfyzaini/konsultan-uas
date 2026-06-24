@@ -7,6 +7,7 @@ use App\Models\Booking;
 use App\Services\BookingService;
 use App\Services\PaymentService;
 use Illuminate\Http\Request;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class BookingController extends Controller
 {
@@ -177,9 +178,9 @@ class BookingController extends Controller
         $this->bookingService->markAttendance($booking, 'client');
         $booking->refresh();
 
-        if (in_array($booking->status, ['cancelled', 'completed', 'pending_settlement'])) {
+        if ($booking->status === 'cancelled') {
             return redirect()->route('client.booking.show', $booking->id)
-                ->with('success', 'Sesi konsultasi terjadwal ini telah berakhir.');
+                ->with('error', 'Sesi konsultasi terjadwal ini telah dibatalkan.');
         }
 
         $secondsRemaining = $booking->attendance_deadline
@@ -269,7 +270,7 @@ class BookingController extends Controller
             'seconds_remaining'  => $booking->attendance_deadline
                 ? max(0, (int) now()->diffInSeconds($booking->attendance_deadline, false))
                 : null,
-            'redirect_to_result' => in_array($booking->status, ['cancelled', 'completed', 'pending_settlement']),
+            'redirect_to_result' => $booking->status === 'cancelled',
             'new_messages'       => $newMessages,
         ]);
     }
@@ -320,6 +321,26 @@ class BookingController extends Controller
         } catch (\Exception $e) {
             return back()->with('error', $e->getMessage());
         }
+    }
+
+    // ──────────────────────────────────────────────
+    // DOWNLOAD RESUME (PDF)
+    // GET /client/booking/{id}/pdf
+    // ──────────────────────────────────────────────
+    public function downloadPdf(int $id)
+    {
+        $booking = Booking::with([
+            'expertProfile.user.profile',
+            'expertProfile.category',
+            'client.profile',
+            'consultation.chatMessages.sender'
+        ])
+        ->where('client_id', auth()->id())
+        ->whereIn('status', ['completed', 'pending_settlement'])
+        ->findOrFail($id);
+
+        $pdf = Pdf::loadView('client.booking.pdf', compact('booking'));
+        return $pdf->download("resume-konsultasi-{$booking->id}.pdf");
     }
 }
 
