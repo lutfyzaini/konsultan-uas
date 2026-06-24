@@ -83,18 +83,7 @@
     <a href="{{ route('register') }}" class="text-indigo-600 font-medium hover:underline">Daftar sekarang</a>
 </p>
 
-{{-- Demo credentials (hapus saat production) --}}
-@if(config('app.debug'))
-<div class="mt-6 p-3 bg-amber-50 border border-amber-200 rounded-lg">
-    <p class="text-xs font-medium text-amber-700 mb-2">🔑 Akun Demo:</p>
-    <div class="space-y-1 text-xs text-amber-600 font-mono">
-        <p>Admin: admin@konsultasi.test</p>
-        <p>Expert: siti@konsultasi.test</p>
-        <p>Client: rina@konsultasi.test</p>
-        <p class="text-amber-500">Password semua: <strong>password</strong></p>
-    </div>
-</div>
-@endif
+
 
 <script>
 function togglePassword() {
