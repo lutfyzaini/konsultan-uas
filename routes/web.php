@@ -55,6 +55,7 @@ Route::middleware(['auth', 'role:client'])->prefix('client')->name('client.')->g
     Route::get('/booking/{id}',            [BookingController::class, 'show'])->name('booking.show');
     Route::get('/booking/{id}/pdf',        [BookingController::class, 'downloadPdf'])->name('booking.pdf');
     Route::post('/booking/{id}/review',    [BookingController::class, 'storeReview'])->name('booking.review');
+    Route::post('/booking/{id}/approve',   [BookingController::class, 'approveSettlement'])->name('booking.approve');
 
     // ── INSTANT CONSULTATION FLOW ──
     Route::post('/instant/{expertId}',      [InstantConsultationController::class, 'create'])->name('instant.create');

@@ -348,4 +348,66 @@ class CoreEnhancementsTest extends TestCase
         $this->assertNotNull($lockedBooking);
         $this->assertEquals('pending_payment', $lockedBooking->status);
     }
+
+    public function test_client_can_approve_settlement_and_post_review(): void
+    {
+        // Skenario 1: Client menyetujui settlement secara langsung
+        $booking1 = Booking::create([
+            'client_id' => $this->clientUser->id,
+            'expert_profile_id' => $this->expertProfile->id,
+            'booking_date' => now()->toDateString(),
+            'start_time' => '10:00',
+            'end_time' => '11:00',
+            'status' => 'pending_settlement',
+            'booking_type' => 'scheduled',
+            'total_price' => 100000,
+        ]);
+
+        Payment::create([
+            'booking_id' => $booking1->id,
+            'invoice' => 'INV-TEST-SETTLE-1',
+            'amount' => 100000,
+            'status' => 'paid',
+            'method' => 'wallet',
+        ]);
+
+        $response1 = $this->actingAs($this->clientUser)
+            ->post(route('client.booking.approve', $booking1->id));
+
+        $response1->assertRedirect();
+        $this->assertEquals('completed', $booking1->fresh()->status);
+        $this->assertNotNull($booking1->fresh()->payment->settled_at);
+
+        // Skenario 2: Client memberikan ulasan yang secara otomatis memicu settlement
+        $booking2 = Booking::create([
+            'client_id' => $this->clientUser->id,
+            'expert_profile_id' => $this->expertProfile->id,
+            'booking_date' => now()->toDateString(),
+            'start_time' => '11:00',
+            'end_time' => '12:00',
+            'status' => 'pending_settlement',
+            'booking_type' => 'scheduled',
+            'total_price' => 100000,
+        ]);
+
+        Payment::create([
+            'booking_id' => $booking2->id,
+            'invoice' => 'INV-TEST-SETTLE-2',
+            'amount' => 100000,
+            'status' => 'paid',
+            'method' => 'wallet',
+        ]);
+
+        $response2 = $this->actingAs($this->clientUser)
+            ->post(route('client.booking.review', $booking2->id), [
+                'rating' => 5,
+                'comment' => 'Outstanding!',
+            ]);
+
+        $response2->assertRedirect();
+        $this->assertEquals('completed', $booking2->fresh()->status);
+        $this->assertNotNull($booking2->fresh()->payment->settled_at);
+        $this->assertEquals(5, $booking2->fresh()->review->rating);
+        $this->assertEquals('Outstanding!', $booking2->fresh()->review->comment);
+    }
 }

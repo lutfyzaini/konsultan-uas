@@ -107,8 +107,22 @@
         </div>
 
         {{-- Section Ulasan --}}
-        @if($booking->status === 'completed')
+        @if(in_array($booking->status, ['completed', 'pending_settlement']))
             <div class="border-t border-slate-100 p-6 bg-slate-50">
+                @if($booking->status === 'pending_settlement' && !$booking->review)
+                    <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-5">
+                        <p class="text-xs text-amber-800 leading-relaxed mb-3">
+                            Sesi konsultasi telah berakhir. Anda dapat memberikan ulasan langsung di bawah (yang juga akan otomatis mencairkan dana ke pakar), atau cukup selesaikan transaksi saja tanpa ulasan dengan mengklik tombol berikut:
+                        </p>
+                        <form action="{{ route('client.booking.approve', $booking->id) }}" method="POST">
+                            @csrf
+                            <button type="submit" class="w-full py-2 bg-amber-600 hover:bg-amber-700 text-white font-semibold rounded-lg text-xs shadow-sm transition-all">
+                                Konfirmasi Selesai & Cairkan Dana
+                            </button>
+                        </form>
+                    </div>
+                @endif
+
                 @if($booking->review)
                     <h3 class="font-semibold text-slate-800 text-sm mb-3">Ulasan Anda</h3>
                     <div class="flex items-center gap-1 mb-2">

@@ -280,7 +280,7 @@ class BookingController extends Controller
         $booking = Booking::where('client_id', auth()->id())
             ->findOrFail($id);
 
-        if ($booking->status !== 'completed') {
+        if (!in_array($booking->status, ['completed', 'pending_settlement'])) {
             return back()->with('error', 'Ulasan hanya dapat diberikan jika sesi konsultasi telah selesai.');
         }
 
@@ -294,14 +294,39 @@ class BookingController extends Controller
             'comment' => 'nullable|string|max:1000',
         ]);
 
-        $booking->review()->create([
-            'client_id' => auth()->id(),
-            'expert_profile_id' => $booking->expert_profile_id,
-            'rating' => $request->rating,
-            'comment' => $request->comment,
-        ]);
+        try {
+            \Illuminate\Support\Facades\DB::transaction(function () use ($booking, $request) {
+                // Jika status masih pending_settlement, cairkan dana terlebih dahulu
+                if ($booking->status === 'pending_settlement') {
+                    $this->paymentService->settlePayment($booking);
+                }
 
-        return back()->with('success', 'Terima kasih atas ulasan Anda!');
+                $booking->review()->create([
+                    'client_id' => auth()->id(),
+                    'expert_profile_id' => $booking->expert_profile_id,
+                    'rating' => $request->rating,
+                    'comment' => $request->comment,
+                ]);
+            });
+
+            return back()->with('success', 'Terima kasih atas ulasan Anda! Sesi konsultasi telah diselesaikan.');
+        } catch (\Exception $e) {
+            return back()->with('error', $e->getMessage());
+        }
+    }
+
+    public function approveSettlement(int $id)
+    {
+        $booking = Booking::where('client_id', auth()->id())
+            ->where('status', 'pending_settlement')
+            ->findOrFail($id);
+
+        try {
+            $this->paymentService->settlePayment($booking);
+            return back()->with('success', 'Konsultasi berhasil diselesaikan. Dana telah dicairkan ke pakar.');
+        } catch (\Exception $e) {
+            return back()->with('error', $e->getMessage());
+        }
     }
 
     // ──────────────────────────────────────────────
