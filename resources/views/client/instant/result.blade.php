@@ -152,12 +152,12 @@
             @if($booking->status === 'pending_settlement' && !$booking->review)
                 <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-5 text-center">
                     <p class="text-xs text-amber-800 leading-relaxed mb-3">
-                        Sesi konsultasi telah berakhir. Anda dapat memberikan ulasan langsung di bawah (yang juga akan otomatis mencairkan dana ke pakar), atau cukup selesaikan transaksi saja tanpa ulasan dengan mengklik tombol berikut:
+                        Sesi konsultasi telah berakhir. Anda dapat memberikan ulasan langsung di bawah, atau cukup konfirmasi bahwa sesi telah selesai dengan mengklik tombol berikut:
                     </p>
                     <form action="{{ route('client.booking.approve', $booking->id) }}" method="POST">
                         @csrf
                         <button type="submit" class="w-full py-2 bg-amber-600 hover:bg-amber-700 text-white font-semibold rounded-lg text-xs shadow-sm transition-all">
-                            Konfirmasi Selesai & Cairkan Dana
+                            Konfirmasi Selesai
                         </button>
                     </form>
                 </div>

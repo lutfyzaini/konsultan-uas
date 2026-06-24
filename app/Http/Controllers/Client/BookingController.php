@@ -323,7 +323,7 @@ class BookingController extends Controller
 
         try {
             $this->paymentService->settlePayment($booking);
-            return back()->with('success', 'Konsultasi berhasil diselesaikan. Dana telah dicairkan ke pakar.');
+            return back()->with('success', 'Konsultasi berhasil diselesaikan. Terima kasih atas konfirmasi Anda.');
         } catch (\Exception $e) {
             return back()->with('error', $e->getMessage());
         }
