@@ -1,8 +1,25 @@
 @extends('layouts.app')
 @section('title', 'Ruang Konsultasi — ' . ($booking->expertProfile->user->profile->name ?? 'Expert'))
 
+@push('styles')
+<style>
+    body {
+        height: 100vh !important;
+        overflow: hidden !important;
+    }
+    main {
+        height: calc(100vh - 64px) !important;
+        display: flex !important;
+        flex-direction: column !important;
+    }
+    footer {
+        display: none !important;
+    }
+</style>
+@endpush
+
 @section('content')
-<div class="min-h-screen bg-slate-50 flex flex-col">
+<div class="h-full bg-slate-50 flex flex-col flex-1">
 
     {{-- HEADER — Info Expert & Status Sesi --}}
     <div class="bg-blue-900 text-white shadow-lg flex-shrink-0">
@@ -63,7 +80,7 @@
     </div>
 
     {{-- BODY — Chat Box --}}
-    <div class="flex-1 max-w-4xl w-full mx-auto px-4 py-4 flex flex-col" style="height: calc(100vh - 130px)">
+    <div class="flex-1 max-w-4xl w-full mx-auto px-4 py-4 flex flex-col h-full min-h-0">
 
         @if(session('success'))
         <div class="mb-3 p-3 bg-teal-50 border border-teal-200 rounded-xl text-sm text-teal-700">
