@@ -57,6 +57,13 @@ class ConsultationApiController extends Controller
             ], 404);
         }
 
+        if ($booking->status !== 'ongoing') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Sesi obrolan telah berakhir dan berada dalam mode read-only.'
+            ], 400);
+        }
+
         $msgId = DB::table('chat_messages')->insertGetId([
             'consultation_id' => $booking->consultation->id,
             'sender_id'       => $request->sender_id,
