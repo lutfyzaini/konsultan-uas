@@ -1,5 +1,0 @@
-$kind: http-request
-name: http://127.0.0.1:8000/api/experts/1
-url: http://127.0.0.1:8000/api/experts/1
-method: GET
-order: 1782225562934

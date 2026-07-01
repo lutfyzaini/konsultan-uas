@@ -8,13 +8,6 @@ use Illuminate\Support\Facades\Auth;
 
 class RoleMiddleware
 {
-    /**
-     * Cara pakai di routes/web.php:
-     *   ->middleware('role:admin')
-     *   ->middleware('role:expert')
-     *   ->middleware('role:client')
-     *   ->middleware('role:admin,expert')  ← bisa lebih dari satu role
-     */
     public function handle(Request $request, Closure $next, string ...$roles): mixed
     {
         // belum login

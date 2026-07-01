@@ -1,0 +1,167 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "E-Konsul-API",
+    "version": "1.0.0",
+    "description": "Koleksi API E-Konsul untuk pengujian endpoint kategori, pakar, booking, ketersediaan slot, dan ruang konsultasi chat."
+  },
+  "servers": [
+    {
+      "url": "http://127.0.0.1:8000"
+    }
+  ],
+  "paths": {
+    "/api/categories": {
+      "get": {
+        "summary": "Daftar Semua Kategori",
+        "responses": {},
+        "tags": [
+          "Categories & Experts"
+        ]
+      }
+    },
+    "/api/experts": {
+      "get": {
+        "summary": "Daftar Semua Expert (Approved)",
+        "responses": {},
+        "tags": [
+          "Categories & Experts"
+        ]
+      }
+    },
+    "/api/experts/1": {
+      "get": {
+        "summary": "Detail Satu Expert",
+        "responses": {},
+        "tags": [
+          "Categories & Experts"
+        ]
+      }
+    },
+    "/api/bookings": {
+      "get": {
+        "summary": "Daftar Booking",
+        "responses": {},
+        "tags": [
+          "Bookings"
+        ]
+      },
+      "post": {
+        "summary": "Buat Booking (Kunci Slot)",
+        "responses": {},
+        "tags": [
+          "Bookings"
+        ]
+      }
+    },
+    "/api/bookings/1": {
+      "get": {
+        "summary": "Detail Booking",
+        "responses": {},
+        "tags": [
+          "Bookings"
+        ]
+      }
+    },
+    "/api/bookings/1/cancel": {
+      "post": {
+        "summary": "Batalkan Booking",
+        "responses": {},
+        "tags": [
+          "Bookings"
+        ]
+      }
+    },
+    "/api/slots": {
+      "get": {
+        "summary": "Daftar Slot Ketersediaan Pakar",
+        "parameters": [
+          {
+            "name": "expert_profile_id",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            },
+            "example": 1
+          }
+        ],
+        "responses": {},
+        "tags": [
+          "Slots"
+        ]
+      },
+      "post": {
+        "summary": "Buat Slot Ketersediaan Baru",
+        "parameters": [
+          {
+            "name": "expert_profile_id",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            },
+            "example": 1
+          }
+        ],
+        "responses": {},
+        "tags": [
+          "Slots"
+        ]
+      }
+    },
+    "/api/slots/101": {
+      "delete": {
+        "summary": "Hapus Slot Ketersediaan",
+        "responses": {},
+        "tags": [
+          "Slots"
+        ]
+      }
+    },
+    "/api/consultations/1": {
+      "get": {
+        "summary": "Detail Konsultasi & Riwayat Chat",
+        "responses": {},
+        "tags": [
+          "Consultations & Chats"
+        ]
+      }
+    },
+    "/api/consultations/2/message": {
+      "post": {
+        "summary": "Kirim Pesan Chat Baru",
+        "responses": {},
+        "tags": [
+          "Consultations & Chats"
+        ]
+      }
+    },
+    "/api/consultations/1/status": {
+      "get": {
+        "summary": "Status Konsultasi & Polling Pesan",
+        "parameters": [
+          {
+            "name": "last_id",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            },
+            "example": 0
+          }
+        ],
+        "responses": {},
+        "tags": [
+          "Consultations & Chats"
+        ]
+      }
+    },
+    "/api/consultations/1/end": {
+      "post": {
+        "summary": "Akhiri Sesi Konsultasi",
+        "responses": {},
+        "tags": [
+          "Consultations & Chats"
+        ]
+      }
+    }
+  }
+}

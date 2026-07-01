@@ -1,6 +1,18 @@
 $kind: http-request
-url: "{{base_url}}/api/slots/1"
+url: "{{base_url}}/api/slots/{{created_slot_id}}"
 method: DELETE
 headers:
   Accept: application/json
+  Authorization: Bearer {{auth_token}}
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test("Status code is 200", function () {
+          pm.response.to.have.status(200);
+      });
+      pm.test("Response success is true", function () {
+          var jsonData = pm.response.json();
+          pm.expect(jsonData.success).to.be.true;
+      });
+    language: text/javascript
 order: 3000

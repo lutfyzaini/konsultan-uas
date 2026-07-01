@@ -1,0 +1,48 @@
+$kind: http-example
+request:
+  url: "{{base_url}}/api/bookings"
+  method: POST
+  headers:
+    Accept: application/json
+    Content-Type: application/json
+    Authorization: Bearer {{auth_token}}
+  body:
+    type: text
+    content: |-
+      {
+          "availability_id": 3,
+          "client_id": 1
+      }
+response:
+  statusCode: 201
+  statusText: Created
+  headers:
+    host: 127.0.0.1:8000
+    connection: close
+    x-powered-by: PHP/8.4.16
+    cache-control: no-cache, private
+    date: Wed, 01 Jul 2026 07:09:03 GMT
+    content-type: application/json
+    access-control-allow-origin: "*"
+  body:
+    type: json
+    content: |-
+      {
+        "success": true,
+        "message": "Slot berhasil dikunci.",
+        "data": {
+          "client_id": 1,
+          "expert_profile_id": 1,
+          "availability_id": 3,
+          "booking_date": "2026-07-06T00:00:00.000000Z",
+          "start_time": "19:00:00",
+          "end_time": "20:00:00",
+          "status": "pending_payment",
+          "total_price": "150000.00",
+          "payment_deadline": "2026-07-01T07:24:03.000000Z",
+          "updated_at": "2026-07-01T07:09:03.000000Z",
+          "created_at": "2026-07-01T07:09:03.000000Z",
+          "id": 2
+        }
+      }
+order: 1782889843831

@@ -1,16 +1,15 @@
 $kind: http-request
-url: "{{base_url}}/api/consultations/1/message"
+url: "{{base_url}}/api/login"
 method: POST
 headers:
   Accept: application/json
   Content-Type: application/json
-  Authorization: Bearer {{auth_token}}
 body:
   type: text
   content: |-
     {
-        "sender_id": 1,
-        "message": "Halo, ada yang bisa saya bantu?"
+      "email": "admin@konsultasi.test",
+      "password": "password"
     }
 scripts:
   - type: afterResponse
@@ -18,9 +17,11 @@ scripts:
       pm.test("Status code is 200", function () {
           pm.response.to.have.status(200);
       });
-      pm.test("Response success is true", function () {
+      pm.test("Token returned", function () {
           var jsonData = pm.response.json();
           pm.expect(jsonData.success).to.be.true;
+          pm.expect(jsonData.data.token).to.not.be.undefined;
+          pm.collectionVariables.set("auth_token", jsonData.data.token);
       });
     language: text/javascript
-order: 2000
+order: 5000

@@ -11,17 +11,11 @@ use Carbon\Carbon;
 
 class BookingService
 {
-    // ----------------------------------------------------------------
-    // KONSTANTA — ubah di sini kalau mau ganti aturan bisnis
-    // ----------------------------------------------------------------
+
     const LOCK_MINUTES        = 15;  // slot dikunci 15 menit untuk bayar
     const MIN_LEAD_TIME_HOURS = 2;   // minimal pesan 2 jam sebelum sesi
 
-    // ----------------------------------------------------------------
-    // LOCK SLOT
-    // Dipanggil saat client memilih slot dan klik "Booking"
-    // Mengembalikan Booking baru, atau throw Exception jika gagal
-    // ----------------------------------------------------------------
+
     public function lockSlot(int $availabilityId, int $clientId): Booking
     {
         return DB::transaction(function () use ($availabilityId, $clientId) {
@@ -210,6 +204,14 @@ class BookingService
     // ----------------------------------------------------------------
     public function endSession(Booking $booking): void
     {
+        if (in_array($booking->status, ['pending_settlement', 'completed'])) {
+            throw new \Exception('Sesi konsultasi sudah diakhiri sebelumnya.');
+        }
+
+        if ($booking->status === 'cancelled') {
+            throw new \Exception('Sesi konsultasi sudah dibatalkan.');
+        }
+
         DB::transaction(function () use ($booking) {
 
             $now = now();

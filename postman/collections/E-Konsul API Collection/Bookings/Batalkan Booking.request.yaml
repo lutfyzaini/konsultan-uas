@@ -3,4 +3,17 @@ url: "{{base_url}}/api/bookings/1/cancel"
 method: POST
 headers:
   Accept: application/json
+  Authorization: Bearer {{auth_token}}
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test("Status code is 200", function () {
+          pm.response.to.have.status(200);
+      });
+      pm.test("Response success is true", function () {
+          var jsonData = pm.response.json();
+          pm.expect(jsonData.success).to.be.true;
+      });
+    language: text/javascript
+examples: .resources/Batalkan Booking.resources/examples
 order: 4000

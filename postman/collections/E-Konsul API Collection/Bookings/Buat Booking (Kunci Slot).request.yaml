@@ -4,6 +4,7 @@ method: POST
 headers:
   Accept: application/json
   Content-Type: application/json
+  Authorization: Bearer {{auth_token}}
 body:
   type: text
   content: |-
@@ -11,4 +12,16 @@ body:
         "availability_id": 1,
         "client_id": 1
     }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test("Status code is 201", function () {
+          pm.response.to.have.status(201);
+      });
+      pm.test("Response success is true", function () {
+          var jsonData = pm.response.json();
+          pm.expect(jsonData.success).to.be.true;
+      });
+    language: text/javascript
+examples: .resources/Buat Booking (Kunci Slot).resources/examples
 order: 2000

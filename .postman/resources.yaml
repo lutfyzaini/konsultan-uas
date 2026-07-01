@@ -1,13 +1,14 @@
-# Use this workspace to collaborate
 workspace:
   id: ed9dfd4c-dc7d-4a62-88ef-de7a6ddbe294
 
+# Each entry here maps a local resource to one or more corresponding objects in Postman Cloud
+
 cloudResources:
   collections:
-    ..\postman\collections\E-Konsul API Collection: 69429265-86f2-40c4-b31d-a3d349445850
+    ../postman/collections/New Collection: 56029729-bd753cff-4ce3-42d2-b55e-5724e05fe715
+    ../postman/collections/My Collection: 56029729-ef82fb84-512b-45f3-b3f4-45f4a7af4c92
+    ../postman/collections/E-Konsul API Collection: 7c8b2ba6-5141-477c-b93b-1e7b42725ed4
 
-# All resources in the `postman/` folder are automatically registered in Local View.
-# Point to additional files outside the `postman/` folder to register them individually. Example:
-#localResources:
-#  collections:
-#    - ../tests/E2E Test Collection/
+localResources:
+  specs:
+    - ../postman/specs/E-Konsul-API/E-Konsul-API.json

@@ -1,4 +1,13 @@
 $kind: collection
+name: E-Konsul API Collection
 description: Koleksi API E-Konsul untuk pengujian endpoint kategori, pakar, booking, ketersediaan slot, dan ruang konsultasi chat.
 variables:
   base_url: http://127.0.0.1:8000
+  auth_token: ""
+  created_slot_id: ""
+auth:
+  - id: 3e109335-2a41-44c9-95ac-4e815cbb9924
+    type: bearer
+    name: bearer auth
+    credentials:
+      token: "{{auth_token}}"

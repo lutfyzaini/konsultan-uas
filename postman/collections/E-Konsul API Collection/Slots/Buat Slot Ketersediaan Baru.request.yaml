@@ -4,6 +4,7 @@ method: POST
 headers:
   Accept: application/json
   Content-Type: application/json
+  Authorization: Bearer {{auth_token}}
 body:
   type: text
   content: |-
@@ -13,4 +14,16 @@ body:
         "start_time": "14:00",
         "end_time": "15:00"
     }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test("Status code is 201", function () {
+          pm.response.to.have.status(201);
+      });
+      pm.test("Response success is true", function () {
+          var jsonData = pm.response.json();
+          pm.expect(jsonData.success).to.be.true;
+          pm.collectionVariables.set("created_slot_id", jsonData.data.id);
+      });
+    language: text/javascript
 order: 2000

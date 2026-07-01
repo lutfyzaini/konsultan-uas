@@ -1,0 +1,82 @@
+$kind: http-example
+request:
+  url: "{{base_url}}/api/bookings/2"
+  method: GET
+  headers:
+    Accept: application/json
+    Authorization: Bearer {{auth_token}}
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    host: 127.0.0.1:8000
+    connection: close
+    x-powered-by: PHP/8.4.16
+    cache-control: no-cache, private
+    date: Wed, 01 Jul 2026 07:10:15 GMT
+    content-type: application/json
+    access-control-allow-origin: "*"
+  body:
+    type: json
+    content: |-
+      {
+        "success": true,
+        "data": {
+          "id": 2,
+          "client_id": 1,
+          "expert_profile_id": 1,
+          "availability_id": 3,
+          "booking_date": "2026-07-06T00:00:00.000000Z",
+          "start_time": "19:00:00",
+          "end_time": "20:00:00",
+          "status": "pending_payment",
+          "cancel_reason": null,
+          "client_notes": null,
+          "total_price": "150000.00",
+          "payment_deadline": "2026-07-01T07:24:03.000000Z",
+          "session_started_at": null,
+          "session_ended_at": null,
+          "booking_type": "scheduled",
+          "attendance_deadline": null,
+          "client_joined": 0,
+          "expert_joined": 0,
+          "reminder_sent": 0,
+          "created_at": "2026-07-01T07:09:03.000000Z",
+          "updated_at": "2026-07-01T07:09:03.000000Z",
+          "expert_profile": {
+            "id": 1,
+            "user_id": 2,
+            "category_id": 1,
+            "title": "Konsultan Hukum & Advokat",
+            "bio": "Berpengalaman 10 tahun di bidang hukum perdata dan bisnis. Menangani lebih dari 200 kasus.",
+            "location": "Jakarta",
+            "experience_years": 10,
+            "hourly_rate": "150000.00",
+            "is_online": true,
+            "verification_status": "approved",
+            "total_sessions": 12,
+            "average_rating": "4.80",
+            "commission_level": "pro",
+            "penalty_count": 0,
+            "created_at": "2026-07-01T05:58:13.000000Z",
+            "updated_at": "2026-07-01T05:58:13.000000Z",
+            "badge": "Top Rated"
+          },
+          "availability": {
+            "id": 3,
+            "expert_profile_id": 1,
+            "day_of_week": "Senin",
+            "start_time": "19:00:00",
+            "end_time": "20:00:00",
+            "is_active": true,
+            "status": "locked",
+            "locked_at": "2026-07-01T07:09:03.000000Z",
+            "locked_by": 1,
+            "created_at": "2026-07-01T05:58:14.000000Z",
+            "updated_at": "2026-07-01T07:09:03.000000Z"
+          },
+          "payment": null,
+          "consultation": null
+        }
+      }
+order: 1782889848902
