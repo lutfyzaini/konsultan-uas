@@ -97,3 +97,113 @@ Platform E-Konsul memanfaatkan Laravel Task Scheduler yang dikonfigurasi pada [r
 | `instant:check-attendance` | Setiap Menit | Mengecek no-show (10 menit) sesi instan untuk memicu refund/kompensasi. |
 | `payments:auto-approve` | Setiap Jam | Melakukan settlement pembayaran otomatis 24 jam setelah sesi berakhir tanpa sengketa. |
 | `bookings:send-reminders` | Setiap 5 Menit | Mengirimkan email notifikasi pengingat sesi terjadwal 30 menit sebelum dimulai. |
+
+---
+
+## ⚙️ Petunjuk Instalasi & Menjalankan Projek
+
+Ikuti langkah-langkah berikut untuk memasang dan menjalankan aplikasi **E-Konsul** di lingkungan lokal Anda.
+
+### 📋 Prasyarat Sistem
+* **PHP >= 8.2**
+* **Composer** (untuk mengelola package PHP)
+* **Node.js & NPM** (untuk kompilasi aset frontend)
+* **MySQL / MariaDB** (melalui Laragon, XAMPP, atau database lokal lainnya)
+* Web server lokal (misalnya bawaan **Laragon** atau `php artisan serve`)
+
+---
+
+### 🛠️ Langkah-Langkah Instalasi
+
+#### 1. Clone Repository & Masuk ke Direktori
+Buka terminal/command prompt, kemudian masuk ke direktori tempat Anda menyimpan projek ini:
+```bash
+cd d:\laragon\www\projek\konsultasi-app
+```
+
+#### 2. Install Dependensi PHP
+Gunakan Composer untuk menginstal semua pustaka backend yang diperlukan:
+```bash
+composer install
+```
+
+#### 3. Install Dependensi JavaScript
+Gunakan NPM untuk menginstal semua paket frontend:
+```bash
+npm install
+```
+
+#### 4. Konfigurasi Environment (`.env`)
+Salin file `.env.example` menjadi `.env`:
+```bash
+cp .env.example .env
+```
+*Catatan: Jika Anda menggunakan Windows PowerShell, gunakan:*
+```powershell
+copy .env.example .env
+```
+
+Buka file `.env` baru Anda dan sesuaikan konfigurasi database sesuai dengan pengaturan lokal Anda. Pengaturan default projek ini adalah:
+```env
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=konsul
+DB_USERNAME=root
+DB_PASSWORD=
+```
+*Pastikan Anda sudah membuat database kosong bernama `konsul` di MySQL/Laragon sebelum melanjutkan.*
+
+#### 5. Generate Application Key
+Jalankan perintah ini untuk membuat key enkripsi aplikasi yang baru:
+```bash
+php artisan key:generate
+```
+
+#### 6. Jalankan Migrasi Database & Seeder
+Buat struktur tabel dan isi data awal (dummy/seed data) ke dalam database Anda:
+```bash
+php artisan migrate --seed
+```
+
+#### 7. Hubungkan Storage Link
+Buat symlink agar file upload (seperti foto profil & sertifikat expert) dapat diakses secara publik oleh browser:
+```bash
+php artisan storage:link
+```
+
+---
+
+### 🚀 Menjalankan Aplikasi di Lokal
+
+Jalankan perintah-perintah berikut di terminal terpisah untuk mengaktifkan seluruh layanan:
+
+#### A. Menjalankan Server Backend (Laravel)
+Jalankan server pengembangan Laravel:
+```bash
+php artisan serve
+```
+Aplikasi Anda sekarang dapat diakses di browser melalui URL: `http://127.0.0.1:8000`
+
+#### B. Menjalankan Kompilator Asset (Vite)
+Jalankan Vite dev server untuk mengompilasi CSS (Tailwind) & JS secara real-time:
+```bash
+npm run dev
+```
+
+#### C. Menjalankan Task Scheduler (Penting untuk Fitur Latar Belakang)
+Beberapa fitur (seperti pengingat sesi dan pembatalan otomatis) berjalan secara berkala menggunakan cron. Jalankan perintah ini di lokal untuk mensimulasikan penjadwal:
+```bash
+php artisan schedule:work
+```
+
+---
+
+### 📮 Pengujian REST API dengan Postman
+
+Projek ini dilengkapi dengan dokumentasi dan skrip testing API yang lengkap.
+1. Buka aplikasi **Postman**.
+2. Klik tombol **Import**, lalu pilih file [E-Konsul_API_Collection.postman_collection.json](file:///d:/laragon/www/projek/konsultasi-app/E-Konsul_API_Collection.postman_collection.json) dari direktori root projek Anda.
+3. Jalankan request **"Login User"** terlebih dahulu untuk menghasilkan token autentikasi. Token akan secara otomatis disimpan di variabel koleksi Postman (`{{auth_token}}`).
+4. Anda siap menjalankan endpoint-endpoint lainnya atau menggunakan Postman Runner untuk menguji seluruh alur kerja sistem.
+
