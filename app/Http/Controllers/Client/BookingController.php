@@ -14,7 +14,8 @@ class BookingController extends Controller
     public function __construct(
         protected BookingService $bookingService,
         protected PaymentService $paymentService,
-    ) {}
+    ) {
+    }
 
     // ──────────────────────────────────────────────
     // DAFTAR BOOKING CLIENT
@@ -110,7 +111,7 @@ class BookingController extends Controller
             return back()->with('error', 'Pesanan instan tidak bisa dibatalkan secara manual.');
         }
 
-        if (! in_array($booking->status, ['pending_payment', 'confirmed'])) {
+        if (!in_array($booking->status, ['pending_payment', 'confirmed'])) {
             return back()->with('error', 'Booking ini tidak bisa dibatalkan.');
         }
 
@@ -140,8 +141,8 @@ class BookingController extends Controller
             'consultation',
             'review',
         ])
-        ->where('client_id', auth()->id())
-        ->findOrFail($id);
+            ->where('client_id', auth()->id())
+            ->findOrFail($id);
 
         return view('client.booking.show', compact('booking'));
     }
@@ -217,18 +218,18 @@ class BookingController extends Controller
 
         $msgId = \Illuminate\Support\Facades\DB::table('chat_messages')->insertGetId([
             'consultation_id' => $booking->consultation->id,
-            'sender_id'       => auth()->id(),
-            'message'         => $request->message,
-            'created_at'      => now(),
-            'updated_at'      => now(),
+            'sender_id' => auth()->id(),
+            'message' => $request->message,
+            'created_at' => now(),
+            'updated_at' => now(),
         ]);
 
         return response()->json([
-            'id'         => $msgId,
-            'sender_id'  => auth()->id(),
-            'message'    => $request->message,
+            'id' => $msgId,
+            'sender_id' => auth()->id(),
+            'message' => $request->message,
             'created_at' => now()->format('H:i'),
-            'is_own'     => true,
+            'is_own' => true,
         ]);
     }
 
@@ -255,23 +256,23 @@ class BookingController extends Controller
                 ->orderBy('created_at', 'asc')
                 ->get()
                 ->map(fn($m) => [
-                    'id'        => $m->id,
+                    'id' => $m->id,
                     'sender_id' => $m->sender_id,
-                    'message'   => $m->message,
-                    'time'      => \Carbon\Carbon::parse($m->created_at)->format('H:i'),
-                    'is_own'    => $m->sender_id === auth()->id(),
+                    'message' => $m->message,
+                    'time' => \Carbon\Carbon::parse($m->created_at)->format('H:i'),
+                    'is_own' => $m->sender_id === auth()->id(),
                 ])
                 ->values();
         }
 
         return response()->json([
-            'status'             => $booking->status,
-            'expert_joined'      => (bool) $booking->expert_joined,
-            'seconds_remaining'  => $booking->attendance_deadline
+            'status' => $booking->status,
+            'expert_joined' => (bool) $booking->expert_joined,
+            'seconds_remaining' => $booking->attendance_deadline
                 ? max(0, (int) now()->diffInSeconds($booking->attendance_deadline, false))
                 : null,
             'redirect_to_result' => $booking->status === 'cancelled',
-            'new_messages'       => $newMessages,
+            'new_messages' => $newMessages,
         ]);
     }
 
@@ -360,9 +361,9 @@ class BookingController extends Controller
             'client.profile',
             'consultation.chatMessages.sender'
         ])
-        ->where('client_id', auth()->id())
-        ->whereIn('status', ['completed', 'pending_settlement'])
-        ->findOrFail($id);
+            ->where('client_id', auth()->id())
+            ->whereIn('status', ['completed', 'pending_settlement'])
+            ->findOrFail($id);
 
         $pdf = Pdf::loadView('client.booking.pdf', compact('booking'));
         return $pdf->download("resume-konsultasi-{$booking->id}.pdf");
