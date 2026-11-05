@@ -66,7 +66,7 @@ class BookingController extends Controller
             ->where('booking_type', 'scheduled')
             ->findOrFail($id);
 
-        if ($booking->status !== 'pending_payment') {
+        if ($booking->status == 'pending_payment') {
             return redirect()->route('client.booking.show', $booking->id);
         }
 
